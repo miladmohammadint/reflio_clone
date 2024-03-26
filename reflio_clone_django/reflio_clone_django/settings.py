@@ -81,9 +81,9 @@ WSGI_APPLICATION = 'reflio_clone_django.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'mydatabase',
-        'USER': 'myuser',
-        'PASSWORD': 'mypassword',
+        'NAME': 'reflio_db',
+        'USER': 'reflio_user',
+        'PASSWORD': 'reflio_clone123',
         'HOST': 'localhost',
         'PORT': '5432',
     }
