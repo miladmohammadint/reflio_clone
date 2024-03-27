@@ -87,9 +87,6 @@ class Affiliate(models.Model):
     impressions = models.IntegerField(default=0)
     referral_code = models.TextField(null=True)
 
-    class Meta:
-        db_table = 'affiliates'
-
 class Referral(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     team_id = models.TextField()
@@ -107,9 +104,6 @@ class Referral(models.Model):
     referral_converted = models.BooleanField(default=False)
     referral_expiry = models.TextField(null=True)
     created = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        db_table = 'referrals'
 
 class Commission(models.Model):
     commission_id = models.CharField(max_length=20, primary_key=True, unique=True, default=generate_uid)
