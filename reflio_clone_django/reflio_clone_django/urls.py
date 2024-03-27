@@ -20,5 +20,6 @@ from reflio_django_app import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/campaigns/create/', views.create_campaign, name='create_campaign') #maps to CampaignFormDjango.js
 ]
 

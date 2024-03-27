@@ -26,7 +26,7 @@ export const CampaignForm = ({ edit, setupMode }) => {
     setLoading(true);
 
     try {
-      const response = await fetch('/api/campaigns/create/', {
+      const response = await fetch('http://localhost:8000/api/campaigns/create/', { 
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
