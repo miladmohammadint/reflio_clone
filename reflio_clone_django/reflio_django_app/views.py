@@ -6,12 +6,6 @@ from django.contrib.auth import authenticate, login, logout
 from django.views.decorators.csrf import csrf_exempt
 import json
 
-# Map to CampaignFormDjango.js
-
-class SomeModelListView(generics.ListCreateAPIView):
-    queryset = SomeModel.objects.all()
-    serializer_class = SomeModelSerializer
-
 # For Auth.js
 
 @csrf_exempt
