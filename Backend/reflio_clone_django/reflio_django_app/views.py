@@ -5,8 +5,8 @@ from .models import Campaign
 from django.contrib.auth import authenticate, login, logout
 from django.views.decorators.csrf import csrf_exempt
 import json
-from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required  # Import login_required decorator
+from django.contrib.auth.forms import UserCreationForm
 
 @csrf_exempt
 def signin(request):
@@ -27,30 +27,16 @@ def signin(request):
 @csrf_exempt
 def signup(request):
     if request.method == 'POST':
-        try:
-            # Try to load JSON data from the request body
-            data = json.loads(request.body.decode('utf-8'))
-        except json.JSONDecodeError:
-            # If decoding JSON fails, assume it's form data
-            data = request.POST
-
-        # Extract the email and password
-        email = data.get('email')
-        password = data.get('password')
-
-        # Check if email and password are provided
-        if not (email and password):
-            return JsonResponse({'error': 'Email and password are required'}, status=400)
-
-        # Create a new user
-        user = User.objects.create_user(email=email, password=password)
-
-        if user is not None:
-            # Automatically log in the user after signup
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            username = form.cleaned_data.get('username')
+            password = form.cleaned_data.get('password1')
+            user = authenticate(username=username, password=password)
             login(request, user)
             return JsonResponse({'message': 'Signup successful'})
         else:
-            return JsonResponse({'error': 'Failed to create user'}, status=500)
+            return JsonResponse({'error': 'Invalid form data'}, status=400)
     else:
         return JsonResponse({'error': 'Method not allowed'}, status=405)
 

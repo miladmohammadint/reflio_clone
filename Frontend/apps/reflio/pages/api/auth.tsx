@@ -6,7 +6,7 @@ export const signup = async (email: string, password: string) => {
     try {
         // Make a POST request to the Django backend API endpoint for user signup
         const response = await axios.post('http://localhost:8000/api/signup/', {
-            email,
+            username: email, // Change 'email' to 'username' to match Django's UserCreationForm
             password
         });
 

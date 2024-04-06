@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+// Export an empty middleware function
+export const middleware = (req: NextRequest) => {
+  return NextResponse.next();
+};
+
+// Optionally export the configuration
 export const config = {
   matcher: ['/(.*)']
 };
-
-export function middleware(req: NextRequest) {
-  const url = req.nextUrl;
-  // Redirect all requests to the /api/auth endpoint
-  url.pathname = '/api/v1/auth';
-  return NextResponse.next();
-}
