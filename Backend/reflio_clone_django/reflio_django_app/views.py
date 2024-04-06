@@ -5,8 +5,7 @@ from .models import Campaign
 from django.contrib.auth import authenticate, login, logout
 from django.views.decorators.csrf import csrf_exempt
 import json
-
-# For Auth.js
+from django.contrib.auth.decorators import login_required  # Import login_required decorator
 
 @csrf_exempt
 def signin(request):
@@ -71,15 +70,14 @@ def logout_view(request):
     logout(request)
     return JsonResponse({'message': 'Logout successful'})
 
+@login_required  # Apply login_required decorator
 def user_details_view(request):
-    if request.user.is_authenticated:
-        user = request.user
-        user_data = {
-            'username': user.username,
-            # Add other user details as needed
-        }
-        return JsonResponse(user_data)
-    else:
-        return JsonResponse({'error': 'User not authenticated'}, status=401)
+    user = request.user
+    user_data = {
+        'username': user.username,
+        'email': user.email,
+        # Add other user details as needed
+    }
+    return JsonResponse(user_data)
 
 # Additional views for handling user profile updates, etc. if needed

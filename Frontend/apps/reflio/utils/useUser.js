@@ -2,8 +2,8 @@ import { useEffect, useState, createContext, useContext } from 'react';
 import { useRouter } from 'next/router';
 
 // Adjust the following import statements based on your Django backend setup
-import { login, signup, signout, getUserDetails } from '../pages/api/auth';
-import { getTeam, getSubscription } from '../pages/api/user';
+import { login, signup, signout } from '../pages/api/auth';
+import { getUserDetails, getTeam, getSubscription } from '../pages/api/user'; // Import getUserDetails function
 
 export const UserContext = createContext();
 
@@ -20,7 +20,7 @@ export const UserContextProvider = (props) => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        // Fetch user details from Django backend
+        // Fetch user details from Django backend using the imported getUserDetails function
         const userDetails = await getUserDetails();
         setUser(userDetails);
         setUserDetails(userDetails);

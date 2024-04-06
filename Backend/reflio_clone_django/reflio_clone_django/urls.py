@@ -22,10 +22,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/signin/', views.signin, name='signin'), #maps to Auth.js
     path('api/signup/', views.signup, name='signup'), #maps to Auth.js
-    path('api/campaigns/create/', views.create_campaign, name='create_campaign') #maps to CampaignFormDjango.js
-]
-
-
-urlpatterns = [
-    
+    path('api/user/details/', views.user_details_view, name='user_details'),  # New URL pattern for user details
 ]
