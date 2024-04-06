@@ -5,6 +5,7 @@ from .models import Campaign
 from django.contrib.auth import authenticate, login, logout
 from django.views.decorators.csrf import csrf_exempt
 import json
+from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required  # Import login_required decorator
 
 @csrf_exempt
@@ -26,14 +27,23 @@ def signin(request):
 @csrf_exempt
 def signup(request):
     if request.method == 'POST':
-        # Assuming you have a User model with username and password fields
-        data = json.loads(request.body)
-        username = data.get('username')
+        try:
+            # Try to load JSON data from the request body
+            data = json.loads(request.body.decode('utf-8'))
+        except json.JSONDecodeError:
+            # If decoding JSON fails, assume it's form data
+            data = request.POST
+
+        # Extract the email and password
+        email = data.get('email')
         password = data.get('password')
 
+        # Check if email and password are provided
+        if not (email and password):
+            return JsonResponse({'error': 'Email and password are required'}, status=400)
+
         # Create a new user
-        from django.contrib.auth.models import User
-        user = User.objects.create_user(username=username, password=password)
+        user = User.objects.create_user(email=email, password=password)
 
         if user is not None:
             # Automatically log in the user after signup

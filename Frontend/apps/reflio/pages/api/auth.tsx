@@ -1,6 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import axios from 'axios';
-import { getUserDetails } from './user'; // Adjust the import path as needed
 
 // Define the signup function
 export const signup = async (email: string, password: string) => {
