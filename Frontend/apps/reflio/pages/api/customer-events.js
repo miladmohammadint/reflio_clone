@@ -4,7 +4,7 @@ import {
   editCommission,
   createCommission,
   updateCustomer
-} from 'utils/stripe-helpers';
+} from '@/utils/stripe-helpers';
 import { withSentry } from '@sentry/nextjs';
 
 // Stripe requires the raw body to construct the event.

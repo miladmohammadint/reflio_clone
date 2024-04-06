@@ -11,7 +11,7 @@ import {
   generateInviteUrl,
   priceString,
   priceStringDivided
-} from 'utils/helpers';
+} from '@/utils/helpers';
 import setupStepCheck from '@/utils/setupStepCheck';
 import DueCommissions from '@/components/DueCommissions';
 import Link from 'next/link';

@@ -10,7 +10,7 @@ import { SEOMeta } from '@/templates/SEOMeta';
 import { UserGroupIcon } from '@heroicons/react/solid';
 import { TrashIcon, PencilAltIcon } from '@heroicons/react/outline';
 import ReactTooltip from 'react-tooltip';
-import { priceStringDivided, postData } from 'utils/helpers';
+import { priceStringDivided, postData } from '@/utils/helpers';
 import setupStepCheck from '@/utils/setupStepCheck';
 import toast from 'react-hot-toast';
 

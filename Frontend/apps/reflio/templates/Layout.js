@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
 import { Navbar } from '@/components/Navbar';
-import { useUser } from 'utils/useUser';
+import { useUser } from '@/utils/useUser';
 
 export default function Layout({ children }) {
   const { user, userFinderLoaded } = useUser();

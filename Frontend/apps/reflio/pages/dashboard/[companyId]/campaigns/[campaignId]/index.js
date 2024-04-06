@@ -9,7 +9,7 @@ import {
 } from '@heroicons/react/outline';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import toast from 'react-hot-toast';
-import { priceString, generateInviteUrl } from 'utils/helpers';
+import { priceString, generateInviteUrl } from '@/utils/helpers';
 
 export default function SingleCampaignPage() {
   const router = useRouter();

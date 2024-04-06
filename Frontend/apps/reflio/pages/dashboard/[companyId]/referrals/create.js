@@ -5,7 +5,7 @@ import Button from '@/components/Button';
 import { useCompany } from '@/utils/CompanyContext';
 import { useCampaign } from '@/utils/CampaignContext';
 import { SEOMeta } from '@/templates/SEOMeta'; 
-import { postData } from 'utils/helpers';
+import { postData } from '@/utils/helpers';
 import LoadingDots from '@/components/LoadingDots';
 import {
   ArrowNarrowLeftIcon

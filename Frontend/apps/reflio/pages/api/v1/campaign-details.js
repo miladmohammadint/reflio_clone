@@ -1,4 +1,4 @@
-import { campaignInfo } from 'utils/useDatabase';
+import { campaignInfo } from '@/utils/useDatabase';
 import Cors from 'cors';
 import { withSentry } from '@sentry/nextjs';
 

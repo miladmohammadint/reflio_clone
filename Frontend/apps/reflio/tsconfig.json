@@ -14,17 +14,17 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
-    "baseUrl": ".",
+    "baseUrl": "",
     "paths": {
       "@/dist/*": ["../../packages/ui/dist/*"],
       "@/components/*": ["../../packages/ui/src/*"],
-      "@/templates/*": ["./templates/*"],
-      "@/forms/*": ["./forms/*"],
+      "@/templates/*": ["templates/*"],
+      "@/forms/*": ["forms/*"],
       "@/utils/*": ["utils/*"],
       "@/affiliate-utils/*": ["../reflio-affiliate/utils/*"],
       "@/public/js/*": ["public/js/*"]
     },
-    "typeRoots": ["./types"]
+    "typeRoots": ["types"]
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"],
   "exclude": ["node_modules"]
