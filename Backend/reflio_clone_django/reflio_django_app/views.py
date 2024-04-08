@@ -6,7 +6,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.views.decorators.csrf import csrf_exempt
 import json
 from django.contrib.auth.decorators import login_required  # Import login_required decorator
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.models import User  # Import User model
 
 @csrf_exempt
 def signin(request):
@@ -27,16 +27,21 @@ def signin(request):
 @csrf_exempt
 def signup(request):
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
-        if form.is_valid():
-            form.save()
-            username = form.cleaned_data.get('username')
-            password = form.cleaned_data.get('password1')
-            user = authenticate(username=username, password=password)
+        data = json.loads(request.body)
+        username = data.get('username')
+        email = data.get('email')
+        password = data.get('password')
+        redirectTo = data.get('redirectTo')
+
+        # Create a new user
+        user = User.objects.create_user(username=username, email=email, password=password)
+
+        if user is not None:
+            # Log in the user
             login(request, user)
-            return JsonResponse({'message': 'Signup successful'})
+            return JsonResponse({'message': 'Signup successful', 'redirectTo': redirectTo})
         else:
-            return JsonResponse({'error': 'Invalid form data'}, status=400)
+            return JsonResponse({'error': 'Failed to create user'}, status=400)
     else:
         return JsonResponse({'error': 'Method not allowed'}, status=405)
 
