@@ -3,8 +3,9 @@ import { useEffect, useState } from 'react';
 import LoadingDots from '@/components/LoadingDots';
 import { useUser } from '@/utils/useUser';
 import { SEOMeta } from '@/templates/SEOMeta'; 
-import AuthForm from '@/components/AuthForm';
+import { AuthForm } from '@/components/AuthForm';
 import Testimonials from '@/components/Testimonials';
+import { signin, signup } from '/pages/api/auth';
 
 const AuthTemplate = ({ type }) => {
   const router = useRouter();
@@ -24,20 +25,20 @@ const AuthTemplate = ({ type }) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`/api/${type}/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to authenticate');
+      const { email, password } = data;
+      
+      let authFunction;
+      if (type === 'signin') {
+        authFunction = signin;
+      } else if (type === 'signup') {
+        authFunction = signup;
       }
 
+      const response = await authFunction(email, password);
+console.log("first");
       router.push('/dashboard'); // Redirect to dashboard on successful authentication
     } catch (error) {
+      console.log("second");
       setError(error.message);
     } finally {
       setLoading(false);

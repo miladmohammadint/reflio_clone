@@ -2,7 +2,7 @@ import { useEffect, useState, createContext, useContext } from 'react';
 import { useRouter } from 'next/router';
 
 // Adjust the following import statements based on your Django backend setup
-import { login, signup, signout } from '../pages/api/auth';
+import { signin, signup, signout } from '../pages/api/auth';
 import { getUserDetails, getTeam, getSubscription } from '../pages/api/user'; // Import getUserDetails function
 
 export const UserContext = createContext();
@@ -44,23 +44,11 @@ export const UserContextProvider = (props) => {
   }, []);
 
   const signIn = async (email, password) => {
-    try {
-      await login(email, password);
-      router.push('/dashboard');
-    } catch (error) {
-      console.error('Sign in error:', error);
-      // Handle sign-in error here
-    }
+      await signin(email, password);
   };
 
   const signUp = async (email, password) => {
-    try {
       await signup(email, password);
-      router.push('/dashboard');
-    } catch (error) {
-      console.error('Sign up error:', error);
-      // Handle sign-up error here
-    }
   };
 
   const signOut = async () => {

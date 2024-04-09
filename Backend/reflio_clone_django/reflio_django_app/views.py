@@ -15,6 +15,12 @@ def signin(request):
         username = data.get('username')
         password = data.get('password')
 
+        # Check if the user exists
+        user = User.objects.filter(username=username).first()
+        if not user:
+            return JsonResponse({'error': 'User does not exist'}, status=400)
+
+        # Authenticate the user
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
@@ -32,6 +38,10 @@ def signup(request):
         email = data.get('email')
         password = data.get('password')
         redirectTo = data.get('redirectTo')
+
+        # Check if the user already exists
+        if User.objects.filter(username=username).exists():
+            return JsonResponse({'error': 'User already exists'}, status=400)
 
         # Create a new user
         user = User.objects.create_user(username=username, email=email, password=password)
