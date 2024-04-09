@@ -46,14 +46,14 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'corsheaders.middleware.CorsMiddleware',  # Place CorsMiddleware before CommonMiddleware
+    'django.middleware.security.SecurityMiddleware',  # Security middleware
+    'django.contrib.sessions.middleware.SessionMiddleware',  # Session middleware
+    'django.middleware.common.CommonMiddleware',  # Common middleware
+    'django.middleware.csrf.CsrfViewMiddleware',  # CSRF protection middleware
+    'django.contrib.auth.middleware.AuthenticationMiddleware',  # Authentication middleware
+    'django.contrib.messages.middleware.MessageMiddleware',  # Message middleware
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',  # Clickjacking protection middleware
+    'corsheaders.middleware.CorsMiddleware',  # CORS middleware (if used)
 ]
 
 ROOT_URLCONF = 'reflio_clone_django.urls'
@@ -76,6 +76,10 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'reflio_clone_django.wsgi.application'
 
+# Session Configuration
+SESSION_ENGINE = 'django.contrib.sessions.backends.file'  # File-based session backend
+SESSION_FILE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'sessions')
+ # Specify the directory where session files will be stored
 
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
