@@ -23,4 +23,5 @@ urlpatterns = [
     path('api/signin/', views.signin, name='signin'), #maps to Auth.js
     path('api/signup/', views.signup, name='signup'), #maps to Auth.js
     path('api/user/details/', views.user_details_view, name='user_details'),  # New URL pattern for user details
+    path('api/signout/', views.signout, name='signout'),  # New URL pattern for signout
 ]

@@ -1,7 +1,6 @@
 from django.shortcuts import render
 from rest_framework import generics
 from django.http import JsonResponse
-from .models import Campaign
 from django.contrib.auth import authenticate, login, logout
 from django.views.decorators.csrf import csrf_exempt
 import json
@@ -77,9 +76,14 @@ def create_campaign(request):
         # Return an error response for non-POST requests
         return JsonResponse({'error': 'Method not allowed'}, status=405)
 
-def logout_view(request):
-    logout(request)
-    return JsonResponse({'message': 'Logout successful'})
+@csrf_exempt
+def signout(request):
+    if request.method == 'POST':
+        # Log out the user
+        logout(request)
+        return JsonResponse({'message': 'Signout successful'})
+    else:
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
 
 @login_required  # Apply login_required decorator
 def user_details_view(request):

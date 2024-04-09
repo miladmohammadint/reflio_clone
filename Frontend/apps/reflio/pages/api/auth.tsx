@@ -1,6 +1,5 @@
-// auth.tsx
-
 import axios from 'axios';
+import { NextApiRequest, NextApiResponse } from 'next';
 
 // Define the signup function
 export const signup = async (username: string, password: string) => {
@@ -35,6 +34,21 @@ export const signin = async (username: string, password: string) => {
         console.error('Error during signin:', error.response?.data || error.message);
         // Throw an error if signin fails
         throw new Error('Signin failed');
+    }
+};
+
+// Define the signout function
+export const signout = async () => {
+    try {
+        // Make a POST request to the Django backend API endpoint for user signout
+        const response = await axios.post('http://localhost:8000/api/signout/'); // Adjust the API endpoint URL as needed
+
+        // If signout is successful, return the response data
+        return response.data;
+    } catch (error) {
+        console.error('Error during signout:', error.response?.data || error.message);
+        // Throw an error if signout fails
+        throw new Error('Signout failed');
     }
 };
 
