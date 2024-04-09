@@ -1,12 +1,13 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
+// auth.tsx
+
 import axios from 'axios';
 
 // Define the signup function
-export const signup = async (email: string, password: string) => {
+export const signup = async (username: string, password: string) => {
     try {
         // Make a POST request to the Django backend API endpoint for user signup
         const response = await axios.post('http://localhost:8000/api/signup/', {
-            username: email, // Change 'email' to 'username' to match Django's UserCreationForm
+            username, // Change 'email' to 'username' to match Django's UserCreationForm
             password
         });
 
@@ -20,11 +21,11 @@ export const signup = async (email: string, password: string) => {
 };
 
 // Define the signin function
-export const signin = async (email: string, password: string) => {
+export const signin = async (username: string, password: string) => {
     try {
         // Make a POST request to the Django backend API endpoint for user signin
         const response = await axios.post('http://localhost:8000/api/signin/', {
-            email,
+            username, // Change 'email' to 'username' to match Django's authentication logic
             password
         });
 
@@ -41,19 +42,19 @@ export const signin = async (email: string, password: string) => {
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method === 'POST') {
         try {
-            const { email, password, type } = req.body;
+            const { username, password, type } = req.body;
 
-            // Check if email and password are provided
-            if (!email || !password) {
-                return res.status(400).json({ error: 'Email and password are required' });
+            // Check if username and password are provided
+            if (!username || !password) {
+                return res.status(400).json({ error: 'Username and password are required' });
             }
 
             let userData;
             // Call the appropriate function based on the type (signup or signin)
             if (type === 'signup') {
-                userData = await signup(email, password);
+                userData = await signup(username, password);
             } else if (type === 'signin') {
-                userData = await signin(email, password);
+                userData = await signin(username, password);
             } else {
                 return res.status(400).json({ error: 'Invalid authentication type' });
             }
