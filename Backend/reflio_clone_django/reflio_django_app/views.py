@@ -88,11 +88,16 @@ def signout(request):
 @login_required  # Apply login_required decorator
 def user_details_view(request):
     user = request.user
-    user_data = {
-        'username': user.username,
-        'email': user.email,
-        # Add other user details as needed
-    }
-    return JsonResponse(user_data)
+    
+    # Check if the user is authenticated
+    if request.user.is_authenticated:
+        user_data = {
+            'username': user.username,
+            'email': user.email,
+            # Add other user details as needed
+        }
+        return JsonResponse(user_data)
+    else:
+        return JsonResponse({'error': 'User is not authenticated'}, status=401)
 
 # Additional views for handling user profile updates, etc. if needed

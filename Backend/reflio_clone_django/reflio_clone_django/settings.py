@@ -46,14 +46,14 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',  # Security middleware
-    'django.contrib.sessions.middleware.SessionMiddleware',  # Session middleware
-    'django.middleware.common.CommonMiddleware',  # Common middleware
-    'django.middleware.csrf.CsrfViewMiddleware',  # CSRF protection middleware
-    'django.contrib.auth.middleware.AuthenticationMiddleware',  # Authentication middleware
-    'django.contrib.messages.middleware.MessageMiddleware',  # Message middleware
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',  # Clickjacking protection middleware
-    'corsheaders.middleware.CorsMiddleware',  # CORS middleware (if used)
+    'django.middleware.security.SecurityMiddleware',
+    'corsheaders.middleware.CorsMiddleware',  # Place CorsMiddleware before other middleware
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
 ROOT_URLCONF = 'reflio_clone_django.urls'
@@ -137,6 +137,29 @@ STATIC_URL = '/static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-CORS_ALLOWED_ORIGINS = [
-    'http://localhost:3000',
+#CORS_ALLOWED_ORIGINS = [
+#    'http://localhost:3000',
+#]
+
+CORS_ALLOW_ALL_ORIGINS = True
+
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
 ]

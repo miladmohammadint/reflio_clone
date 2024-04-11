@@ -14,7 +14,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 from reflio_django_app import views
 
 
@@ -23,5 +23,6 @@ urlpatterns = [
     path('api/signin/', views.signin, name='signin'), #maps to Auth.js
     path('api/signup/', views.signup, name='signup'), #maps to Auth.js
     path('api/user/details/', views.user_details_view, name='user_details'),  # New URL pattern for user details
+    path('accounts/', include('django.contrib.auth.urls')),
     path('api/signout/', views.signout, name='signout'),  # New URL pattern for signout
 ]
