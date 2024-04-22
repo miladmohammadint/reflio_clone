@@ -21,6 +21,7 @@ export const signup = async (username: string, password: string) => {
 
 // Define the signin function
 export const signin = async (username: string, password: string) => {
+    axios.defaults.withCredentials = true;
     try {
         // Make a POST request to the Django backend API endpoint for user signin
         const response = await axios.post('http://localhost:8000/api/signin/', {
@@ -39,6 +40,7 @@ export const signin = async (username: string, password: string) => {
 
 // Define the signout function
 export const signout = async () => {
+    axios.defaults.withCredentials = true;
     try {
         // Make a POST request to the Django backend API endpoint for user signout
         const response = await axios.post('http://localhost:8000/api/signout/'); // Adjust the API endpoint URL as needed

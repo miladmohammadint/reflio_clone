@@ -40,7 +40,7 @@ class UserProfile(models.Model):
 class Company(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     team = models.ForeignKey(Team, on_delete=models.CASCADE)
-    company_id = models.CharField(max_length=15, primary_key=True, unique=True, default=generate_uid)
+    company_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     company_name = models.CharField(max_length=255)
     company_url = models.URLField(null=True, blank=True)
     company_image = models.URLField(null=True, blank=True)
@@ -53,7 +53,7 @@ class Company(models.Model):
     stripe_id = models.CharField(max_length=255, null=True, blank=True)
     active_company = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True)
-
+    
 class Campaign(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     team = models.ForeignKey(Team, on_delete=models.CASCADE)
@@ -162,3 +162,6 @@ class Subscription(models.Model):
     team = models.ForeignKey(Team, on_delete=models.CASCADE)
     id = models.CharField(max_length=255, primary_key=True)
     status = models.CharField(max_length=20, choices=[('trialing', 'Trialing'), ('active', 'Active'), ('canceled', 'Canceled'), ('incomplete', 'Incomplete'), ('incomplete_expired', 'Incomplete Expired')])
+
+class UserDetails(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='details')

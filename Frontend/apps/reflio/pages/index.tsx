@@ -14,8 +14,9 @@ export default function Index() {
   const router = useRouter();
 
   useEffect(() => {
-    if (user) {
-      router.replace('/dashboard');
+    if (user && user.team_id) {
+      console.log(user);
+      // router.replace('/dashboard');
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);

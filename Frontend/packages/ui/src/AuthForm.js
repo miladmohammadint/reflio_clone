@@ -1,5 +1,5 @@
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useUser } from "@/utils/useUser";
 import { Button } from "@/components/Button";
 import LoadingDots from "@/components/LoadingDots";
@@ -13,10 +13,11 @@ export const AuthForm = ({
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: "", content: "" });
   const router = useRouter();
-  const { signIn, signUp } = useUser();
+  const { user, signIn, signUp } = useUser();
 
   let authState =
     type === "signin" ? "Sign in" : type === "signup" ? "Sign up" : "Sign in";
+
 
   const handleSignin = async (e) => {
     e.preventDefault();
@@ -30,8 +31,8 @@ export const AuthForm = ({
 
       const response = await authFunction(email, password);
 
-      // Handle successful authentication
-      router.push('/dashboard'); // Redirect to dashboard on successful authentication
+      // If authentication is successful, you can optionally redirect to the dashboard
+      router.push('/dashboard');
     } catch (error) {
       setMessage({ type: "error", content: error.message });
     }

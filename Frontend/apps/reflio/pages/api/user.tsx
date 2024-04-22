@@ -4,8 +4,12 @@ const backendBaseUrl = 'http://localhost:8000'; // Adjust the base URL to match 
 
 // Example function to fetch user details
 export const getUserDetails = async () => {
+  axios.defaults.withCredentials = true;
   try {
-    const response = await axios.get(`${backendBaseUrl}/api/user/details`);
+    const response = await axios.get(`${backendBaseUrl}/api/user/details`,{ withCredentials: true });
+    if (response.data.error){
+      return null;
+    }
     return response.data;
   } catch (error) {
     console.error('Error fetching user details:', error);
@@ -31,6 +35,43 @@ export const deleteUser = async (userId) => {
     return response.data;
   } catch (error) {
     console.error('Error deleting user:', error);
+    throw error;
+  }
+};
+
+// Function to create a new company
+export const createCompany = async (userDetails, companyData) => {
+  try {
+    const response = await axios.post(`${backendBaseUrl}/api/company/create`, companyData, {
+      headers: {
+        Authorization: `Bearer ${userDetails.token}`, // Pass the user's token for authentication
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error creating company:', error);
+    throw error;
+  }
+};
+
+// Function to fetch team details
+export const getTeam = async () => {
+  try {
+    const response = await axios.get(`${backendBaseUrl}/api/team`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching team details:', error);
+    throw error;
+  }
+};
+
+// Function to fetch subscription details
+export const getSubscription = async () => {
+  try {
+    const response = await axios.get(`${backendBaseUrl}/api/subscription`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching subscription details:', error);
     throw error;
   }
 };

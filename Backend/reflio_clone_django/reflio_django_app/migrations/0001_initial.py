@@ -171,7 +171,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Company',
             fields=[
-                ('company_id', models.CharField(default=reflio_django_app.models.generate_uid, max_length=15, primary_key=True, serialize=False, unique=True)),
+                ('company_id', models.UUIDField(default=reflio_django_app.models.generate_uid, primary_key=True, serialize=False, unique=True)),
                 ('company_name', models.CharField(max_length=255)),
                 ('company_url', models.URLField(blank=True, null=True)),
                 ('company_image', models.URLField(blank=True, null=True)),

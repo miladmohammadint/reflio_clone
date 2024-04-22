@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router';
 import { useState } from 'react';
-import { useUser, newCompany } from '@/utils/useUser';
+import { useUser } from '@/utils/useUser';
 import { SEOMeta } from '@/templates/SEOMeta'; 
 import Button from '@/components/Button'; 
 import { checkValidUrl, slugifyString } from '@/utils/helpers';
@@ -8,7 +8,7 @@ import toast from 'react-hot-toast';
 
 export default function AddCompany() {
   const router = useRouter();
-  const { userDetails } = useUser();
+  const { userDetails, newCompany } = useUser();
   const [errorMessage, setErrorMessage] = useState(false);
   const [loading, setLoading] = useState(false);
   const [websiteUrlInput, setWebsiteUrlInput] = useState(null);
@@ -16,8 +16,9 @@ export default function AddCompany() {
   const [urlValid, setUrlValid] = useState(null);
 
   const handleSubmit = async (e) => {
-
     e.preventDefault();
+
+    console.log("Form submitted"); // Check form submission
 
     if(loading === true){
       return false;
@@ -39,9 +40,13 @@ export default function AddCompany() {
       data[entry[0]] = entry[1];
     }
 
+    console.log("Form data:", data); // Check form data
+
     setLoading(true);
 
-    await newCompany(userDetails, data).then((result) => {
+    try {
+      const result = await newCompany(userDetails, data);
+
       if(result[0]?.company_id){
         router.push(`/dashboard/${result[0]?.company_id}`)
       } else {
@@ -52,14 +57,13 @@ export default function AddCompany() {
         }
       }
 
+    } catch (error) {
+      console.error('Error creating company:', error);
+      setErrorMessage(true);
+    } finally {
       setLoading(false);
-    });
-
+    }
   };
-
-  // if(planDetails === 'free' && userCompanyDetails?.length >= 1){
-  //   router.replace('/dashboard/plan');
-  // }
 
   return (
     <>
@@ -67,7 +71,8 @@ export default function AddCompany() {
       
       <div className="wrapper">
         <div>
-          <form className="rounded-xl bg-white max-w-2xl overflow-hidden shadow-lg border-4 border-gray-300 mx-auto" action="#" method="POST" onSubmit={handleSubmit}>
+        <form className="rounded-xl bg-white max-w-2xl overflow-hidden shadow-lg border-4 border-gray-300 mx-auto" action="http://localhost:8000/api/company/create/" method="POST" onSubmit={handleSubmit}>
+
             <div className="py-6 text-center border-b-4">
               <h1 className="text-2xl sm:text-3xl tracking-tight font-extrabold">Add company</h1>
             </div>
@@ -152,23 +157,6 @@ export default function AddCompany() {
                           </div>
                         </div>
                       }
-
-                      {/* <div className="sm:col-span-12">
-                        <label htmlFor="loom_email" className="block text-sm font-medium text-gray-700">
-                          Loom Email Address
-                        </label>
-                        <div className="mt-1 flex rounded-md shadow-sm">
-                          <input
-                            required
-                            placeholder="youremail@example.com"
-                            type="text"
-                            name="loom_email"
-                            id="loom_email"
-                            autoComplete="loom_email"
-                            className="flex-1 block w-full min-w-0 rounded-md focus:outline-none sm:text-sm border-gray-300"
-                          />
-                        </div>
-                      </div> */}
 
                     </div>
                   </div>

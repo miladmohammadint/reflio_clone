@@ -1,3 +1,4 @@
+import React from 'react';
 import {
   EyeOffIcon,
   LightningBoltIcon,
@@ -52,8 +53,8 @@ export const Features = () => {
   return(
     <div>
       <dl className="gap-y-10 grid grid-cols-1 gap-x-0 md:gap-y-20 md:grid-cols-2 md:gap-x-20">
-        {features.map((feature) => (
-          <div>
+        {features.map((feature, index) => (
+          <div key={index}> {/* Add key prop with unique index */}
             <dt>
               {
                 feature.icon &&

@@ -1,12 +1,21 @@
 from django.shortcuts import render
-from rest_framework import generics
+from django.middleware.csrf import get_token  # Import get_token to generate CSRF token
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
 from django.http import JsonResponse
+from django.http import HttpResponse
 from django.contrib.auth import authenticate, login, logout
 from django.views.decorators.csrf import csrf_exempt
 import json
 from django.contrib.auth.decorators import login_required  # Import login_required decorator
 from django.contrib.auth.models import User  # Import User model
+from .models import Company, Team, UserDetails  # Import UserDetails model
+from django.views.decorators.cache import never_cache
+import logging  # Import logging module
 
+logger = logging.getLogger(__name__)  # Initialize logger
+
+@never_cache
 @csrf_exempt
 def signin(request):
     if request.method == 'POST':
@@ -29,6 +38,7 @@ def signin(request):
     else:
         return JsonResponse({'error': 'Method not allowed'}, status=405)
 
+@never_cache
 @csrf_exempt
 def signup(request):
     if request.method == 'POST':
@@ -54,28 +64,36 @@ def signup(request):
     else:
         return JsonResponse({'error': 'Method not allowed'}, status=405)
 
-def create_campaign(request):
+@api_view(['POST'])
+def create_company(request):
     if request.method == 'POST':
-        # Extract form data from the request
-        campaign_name = request.POST.get('campaign_name')
-        commission_type = request.POST.get('commission_type')
-        commission_value = request.POST.get('commission_value')
-        # Other form fields...
+        # Logging request headers
+        logger.info('Request Headers: %s', request.headers)
         
-        # Create a new Campaign object and save it to the database
-        campaign = Campaign.objects.create(
-            campaign_name=campaign_name,
-            commission_type=commission_type,
-            commission_value=commission_value,
+        # Extract company data from the request
+        company_name = request.data.get('company_name')
+        company_url = request.data.get('company_url')
+        company_handle = request.data.get('company_handle')
+        # Other company fields...
+        
+        # Create a new Company object and save it to the database
+        company = Company.objects.create(
+            company_name=company_name,
+            company_url=company_url,
+            company_handle=company_handle,
             # Other fields...
         )
+
+        # Construct redirect URL to localhost:3000
+        redirect_url = 'http://localhost:3000/'  # Modify this if the URL is different
         
-        # Return a JSON response indicating success
-        return JsonResponse({'success': True})
+        # Return a JSON response indicating success and including redirect URL
+        return JsonResponse({'success': True, 'redirect_url': redirect_url})
     else:
         # Return an error response for non-POST requests
         return JsonResponse({'error': 'Method not allowed'}, status=405)
 
+@never_cache
 @csrf_exempt
 def signout(request):
     if request.method == 'POST':
@@ -85,19 +103,60 @@ def signout(request):
     else:
         return JsonResponse({'error': 'Method not allowed'}, status=405)
 
-@login_required  # Apply login_required decorator
+@never_cache
+@csrf_exempt
+@api_view(['GET'])  # Specify the allowed HTTP methods
 def user_details_view(request):
-    user = request.user
-    
-    # Check if the user is authenticated
-    if request.user.is_authenticated:
-        user_data = {
-            'username': user.username,
-            'email': user.email,
-            # Add other user details as needed
-        }
-        return JsonResponse(user_data)
+    if request.method == 'GET':
+        print(request)
+        # Fetch user details
+        print(request.user)
+        if request.user.is_authenticated:
+            # Fetch user details
+            user_details = UserDetails.objects.get(user=request.user)  # Assuming UserDetails is related to the User model
+            # Serialize user details as needed
+            user_data = {
+                'username': request.user.username,
+                'email': request.user.email,
+                # Add other user details
+            }
+            return JsonResponse(user_data)
+        else:
+            return JsonResponse({'error': 'User is not authenticated'}, status=401)  # Return 200 OK status even for unauthenticated users
     else:
-        return JsonResponse({'error': 'User is not authenticated'}, status=401)
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
 
-# Additional views for handling user profile updates, etc. if needed
+@login_required
+@never_cache
+@api_view(['GET'])
+def get_team(request):
+    if request.method == 'GET':
+        if request.user.is_authenticated:
+            try:
+                # Retrieve the team details from the database
+                team = Team.objects.get(user=request.user)
+                team_data = {
+                    'team_id': team.team_id,
+                    'team_name': team.team_name,
+                    'billing_address': team.billing_address,
+                    'payment_method': team.payment_method,
+                    'created': team.created
+                    # Add other fields as needed
+                }
+                return JsonResponse(team_data)
+            except Team.DoesNotExist:
+                return JsonResponse({'error': 'Team not found'}, status=404)
+        else:
+            return JsonResponse({'error': 'User is not authenticated'}, status=401)
+    else:
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+def get_subscription(request):
+    # Perform any necessary logic to fetch subscription details from the database
+    # For example, you might retrieve subscription details associated with the currently logged-in user
+    subscription_details = {
+        'plan_name': 'Basic Plan',
+        'price': 9.99,
+        # Add other subscription details as needed
+    }
+    return JsonResponse(subscription_details)

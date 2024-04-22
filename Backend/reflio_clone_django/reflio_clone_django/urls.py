@@ -17,12 +17,15 @@ from django.contrib import admin
 from django.urls import path, include
 from reflio_django_app import views
 
-
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/signin/', views.signin, name='signin'), #maps to Auth.js
-    path('api/signup/', views.signup, name='signup'), #maps to Auth.js
-    path('api/user/details/', views.user_details_view, name='user_details'),  # New URL pattern for user details
+    path('api/signin/', views.signin, name='signin'),  # Maps to Auth.js
+    path('api/signup/', views.signup, name='signup'),  # Maps to Auth.js
+    path('api/user/details', views.user_details_view, name='user_details_view'),  # New URL pattern for user details
+    path('api/company/create', views.create_company, name='create_company'),  # New URL pattern for creating a company
     path('accounts/', include('django.contrib.auth.urls')),
     path('api/signout/', views.signout, name='signout'),  # New URL pattern for signout
+    path('api/team/', views.get_team, name='get_team'),
+    path('api/subscription', views.get_subscription, name='get_subscription'),
+    path('api/team', views.get_team, name='get_team'),  # Map the view function to the /api/team endpoint
 ]

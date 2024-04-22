@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 
 // Adjust the following import statements based on your Django backend setup
 import { signin, signup, signout } from '../pages/api/auth';
-import { getUserDetails, getTeam, getSubscription } from '../pages/api/user'; // Import getUserDetails function
+import { getUserDetails, getTeam, getSubscription, createCompany } from '../pages/api/user'; // Import getUserDetails, getTeam, and createCompany
 
 export const UserContext = createContext();
 
@@ -25,11 +25,11 @@ export const UserContextProvider = (props) => {
         setUser(userDetails);
         setUserDetails(userDetails);
 
-        // Fetch team details from Django backend
+        // Fetch team details from Django backend using the imported getTeam function
         const teamDetails = await getTeam();
         setTeam(teamDetails);
 
-        // Fetch subscription details from Django backend
+        // Fetch subscription details from Django backend using the imported getSubscription function
         const subscriptionDetails = await getSubscription();
         setSubscription(subscriptionDetails);
 
@@ -44,11 +44,11 @@ export const UserContextProvider = (props) => {
   }, []);
 
   const signIn = async (email, password) => {
-      await signin(email, password);
+    await signin(email, password);
   };
 
   const signUp = async (email, password) => {
-      await signup(email, password);
+    await signup(email, password);
   };
 
   const signOut = async () => {
@@ -58,6 +58,17 @@ export const UserContextProvider = (props) => {
     } catch (error) {
       console.error('Sign out error:', error);
       // Handle sign-out error here
+    }
+  };
+
+  const newCompany = async (userDetails, companyData) => {
+    try {
+      // Call your API endpoint to create a new company using the imported createCompany function
+      const result = await createCompany(userDetails, companyData);
+      return result;
+    } catch (error) {
+      console.error('Error creating company:', error);
+      throw new Error('Failed to create company');
     }
   };
 
@@ -74,6 +85,7 @@ export const UserContextProvider = (props) => {
     signIn,
     signUp,
     signOut,
+    newCompany,
   };
 
   return <UserContext.Provider value={value} {...props} />;
