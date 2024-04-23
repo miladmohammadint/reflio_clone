@@ -43,6 +43,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'reflio_django_app',
     'corsheaders',
+    'rest_framework',
+    'rest_framework.authtoken',
 ]
 
 MIDDLEWARE = [
@@ -166,4 +168,12 @@ CORS_ALLOW_HEADERS = [
     'credentials',
 ]
 
-APPEND_SLASH = False
+APPEND_SLASH = True
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+        # Other authentication classes as needed
+    ],
+}

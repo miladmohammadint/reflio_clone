@@ -16,16 +16,18 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from reflio_django_app import views
+from rest_framework.authtoken.views import ObtainAuthToken
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/signin/', views.signin, name='signin'),  # Maps to Auth.js
     path('api/signup/', views.signup, name='signup'),  # Maps to Auth.js
-    path('api/user/details', views.user_details_view, name='user_details_view'),  # New URL pattern for user details
+    path('api/user/details/', views.user_details_view, name='user_details_view'),  # New URL pattern for user details
     path('api/company/create', views.create_company, name='create_company'),  # New URL pattern for creating a company
     path('accounts/', include('django.contrib.auth.urls')),
     path('api/signout/', views.signout, name='signout'),  # New URL pattern for signout
     path('api/team/', views.get_team, name='get_team'),
     path('api/subscription', views.get_subscription, name='get_subscription'),
-    path('api/team', views.get_team, name='get_team'),  # Map the view function to the /api/team endpoint
+    path('api/token/', ObtainAuthToken.as_view(), name='api_token_auth'),
 ]

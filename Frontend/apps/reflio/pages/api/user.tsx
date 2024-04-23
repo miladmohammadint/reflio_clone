@@ -3,11 +3,14 @@ import axios from 'axios';
 const backendBaseUrl = 'http://localhost:8000'; // Adjust the base URL to match your Django backend
 
 // Example function to fetch user details
-export const getUserDetails = async () => {
-  axios.defaults.withCredentials = true;
+export const getUserDetails = async (token) => {
   try {
-    const response = await axios.get(`${backendBaseUrl}/api/user/details`,{ withCredentials: true });
-    if (response.data.error){
+    const response = await axios.get(`${backendBaseUrl}/api/user/details`, {
+      headers: {
+        Authorization: `Bearer ${token}`, // Pass the authentication token
+      },
+    });
+    if (response.data.error) {
       return null;
     }
     return response.data;
@@ -40,11 +43,11 @@ export const deleteUser = async (userId) => {
 };
 
 // Function to create a new company
-export const createCompany = async (userDetails, companyData) => {
+export const createCompany = async (token, companyData) => {
   try {
     const response = await axios.post(`${backendBaseUrl}/api/company/create`, companyData, {
       headers: {
-        Authorization: `Bearer ${userDetails.token}`, // Pass the user's token for authentication
+        Authorization: `Bearer ${token}`, // Pass the authentication token
       },
     });
     return response.data;

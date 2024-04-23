@@ -36,6 +36,15 @@ const AuthTemplate = ({ type }) => {
 
             const response = await authFunction(email, password);
 
+            // Extract the token from the response
+            const token = response.token;
+
+            // Store the token in localStorage or cookies for future use
+            localStorage.setItem('token', token); // You can replace localStorage with cookies if needed
+
+            // Optionally, you can pass the token as an argument to getUserDetails function if needed
+            // const userDetails = await getUserDetails(token);
+
             // No redirection logic here
         } catch (error) {
             setError(error.message);

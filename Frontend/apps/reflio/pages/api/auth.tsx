@@ -1,20 +1,36 @@
+// auth.tsx
+
 import axios from 'axios';
 import { NextApiRequest, NextApiResponse } from 'next';
+
+// Define the key for storing the token in localStorage
+const TOKEN_KEY = 'authToken';
+
+// Function to save the token to localStorage
+const saveTokenToLocalStorage = (token) => {
+    console.log('Token saved to localStorage:', token);
+    localStorage.setItem(TOKEN_KEY, token);
+  };
+
+// Function to retrieve the token from localStorage
+const getTokenFromLocalStorage = () => {
+  return localStorage.getItem(TOKEN_KEY);
+};
 
 // Define the signup function
 export const signup = async (username: string, password: string) => {
     try {
-        // Make a POST request to the Django backend API endpoint for user signup
         const response = await axios.post('http://localhost:8000/api/signup/', {
-            username, // Change 'email' to 'username' to match Django's UserCreationForm
+            username,
             password
         });
-
-        // If signup is successful, return the user object received from Django
-        return response.data;
+        const { data } = response;
+        console.log('Signup response data:', response.data); // Log the response data
+        // Save the token to localStorage
+        saveTokenToLocalStorage(data.token);
+        return data;
     } catch (error) {
         console.error('Error during signup:', error.response?.data || error.message);
-        // Throw an error if signup fails
         throw new Error('Signup failed');
     }
 };
@@ -23,17 +39,17 @@ export const signup = async (username: string, password: string) => {
 export const signin = async (username: string, password: string) => {
     axios.defaults.withCredentials = true;
     try {
-        // Make a POST request to the Django backend API endpoint for user signin
         const response = await axios.post('http://localhost:8000/api/signin/', {
-            username, // Change 'email' to 'username' to match Django's authentication logic
+            username,
             password
         });
-
-        // If signin is successful, return the user object received from Django
-        return response.data;
+        console.log('Signin response data:', response.data); 
+        const { data } = response;
+        // Save the token to localStorage
+        saveTokenToLocalStorage(data.token);
+        return data;
     } catch (error) {
         console.error('Error during signin:', error.response?.data || error.message);
-        // Throw an error if signin fails
         throw new Error('Signin failed');
     }
 };
@@ -43,16 +59,36 @@ export const signout = async () => {
     axios.defaults.withCredentials = true;
     try {
         // Make a POST request to the Django backend API endpoint for user signout
-        const response = await axios.post('http://localhost:8000/api/signout/'); // Adjust the API endpoint URL as needed
-
-        // If signout is successful, return the response data
-        return response.data;
+        await axios.post('http://localhost:8000/api/signout/');
+        // Remove the token from localStorage
+        localStorage.removeItem(TOKEN_KEY);
     } catch (error) {
         console.error('Error during signout:', error.response?.data || error.message);
-        // Throw an error if signout fails
         throw new Error('Signout failed');
     }
 };
+
+// Function to fetch user details
+export const getUserDetails = async () => {
+    try {
+      const token = getTokenFromLocalStorage(); // Retrieve the token from localStorage
+      if (!token) {
+        throw new Error('Token not found in localStorage');
+      }
+      const response = await axios.get(`${backendBaseUrl}/api/user/details`, {
+        headers: {
+          Authorization: `Bearer ${token}`, // Pass the authentication token
+        },
+      });
+      if (response.data.error) {
+        return null;
+      }
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching user details:', error);
+      throw error;
+    }
+  };
 
 // Default request handler for the /api/auth endpoint
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {

@@ -12,6 +12,11 @@ from django.contrib.auth.models import User  # Import User model
 from .models import Company, Team, UserDetails  # Import UserDetails model
 from django.views.decorators.cache import never_cache
 import logging  # Import logging module
+from rest_framework.authtoken.models import Token  # Import Token model
+from rest_framework.exceptions import NotFound
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.permissions import IsAuthenticated
+
 
 logger = logging.getLogger(__name__)  # Initialize logger
 
@@ -23,16 +28,13 @@ def signin(request):
         username = data.get('username')
         password = data.get('password')
 
-        # Check if the user exists
-        user = User.objects.filter(username=username).first()
-        if not user:
-            return JsonResponse({'error': 'User does not exist'}, status=400)
-
         # Authenticate the user
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            return JsonResponse({'message': 'Signin successful'})
+            # Generate or retrieve token for the user
+            token, created = Token.objects.get_or_create(user=user)
+            return JsonResponse({'message': 'Signin successful', 'token': token.key})
         else:
             return JsonResponse({'error': 'Invalid credentials'}, status=400)
     else:
@@ -58,7 +60,9 @@ def signup(request):
         if user is not None:
             # Log in the user
             login(request, user)
-            return JsonResponse({'message': 'Signup successful', 'redirectTo': redirectTo})
+            # Generate or retrieve token for the user
+            token, created = Token.objects.get_or_create(user=user)
+            return JsonResponse({'message': 'Signup successful', 'token': token.key, 'redirectTo': redirectTo})
         else:
             return JsonResponse({'error': 'Failed to create user'}, status=400)
     else:
@@ -105,26 +109,33 @@ def signout(request):
 
 @never_cache
 @csrf_exempt
-@api_view(['GET'])  # Specify the allowed HTTP methods
+@api_view(['GET'])
 def user_details_view(request):
     if request.method == 'GET':
-        print(request)
-        # Fetch user details
-        print(request.user)
-        if request.user.is_authenticated:
-            # Fetch user details
-            user_details = UserDetails.objects.get(user=request.user)  # Assuming UserDetails is related to the User model
-            # Serialize user details as needed
-            user_data = {
-                'username': request.user.username,
-                'email': request.user.email,
-                # Add other user details
-            }
-            return JsonResponse(user_data)
+        if 'Authorization' in request.headers:
+            try:
+                # Extract the token from the Authorization header
+                token = request.headers['Authorization'].split(' ')[1]
+                # Retrieve the user associated with the token
+                user = Token.objects.get(key=token).user
+                # Fetch user details
+                user_details = UserDetails.objects.get(user=user)  
+                # Serialize user details as needed
+                user_data = {
+                    'username': user.username,
+                    'email': user.email,
+                    # Add other user details
+                }
+                return JsonResponse(user_data)
+            except Token.DoesNotExist:
+                raise NotFound('Token does not exist')  # Raise an appropriate exception
+            except UserDetails.DoesNotExist:
+                raise NotFound('User details not found')  # Raise an appropriate exception
         else:
-            return JsonResponse({'error': 'User is not authenticated'}, status=401)  # Return 200 OK status even for unauthenticated users
+            return JsonResponse({'error': 'Authorization header missing'}, status=401)
     else:
         return JsonResponse({'error': 'Method not allowed'}, status=405)
+
 
 @login_required
 @never_cache
