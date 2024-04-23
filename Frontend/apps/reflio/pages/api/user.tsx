@@ -1,13 +1,15 @@
 import axios from 'axios';
+import { getTokenFromLocalStorage } from './auth'; // Import the getTokenFromLocalStorage function
 
 const backendBaseUrl = 'http://localhost:8000'; // Adjust the base URL to match your Django backend
 
 // Example function to fetch user details
-export const getUserDetails = async (token) => {
+export const getUserDetails = async () => {
   try {
+    const token = getTokenFromLocalStorage(); // Retrieve the token from localStorage
     const response = await axios.get(`${backendBaseUrl}/api/user/details`, {
       headers: {
-        Authorization: `Bearer ${token}`, // Pass the authentication token
+        Authorization: `Bearer ${token}`, // Pass the retrieved authentication token
       },
     });
     if (response.data.error) {
