@@ -3,18 +3,15 @@ import { getTokenFromLocalStorage } from './auth'; // Import the getTokenFromLoc
 
 const backendBaseUrl = 'http://localhost:8000'; // Adjust the base URL to match your Django backend
 
-// Example function to fetch user details
+// Function to fetch user details
 export const getUserDetails = async () => {
   try {
     const token = getTokenFromLocalStorage(); // Retrieve the token from localStorage
-    const response = await axios.get(`${backendBaseUrl}/api/user/details`, {
+    const response = await axios.get(`${backendBaseUrl}/api/user/details/`, {
       headers: {
         Authorization: `Bearer ${token}`, // Pass the retrieved authentication token
       },
     });
-    if (response.data.error) {
-      return null;
-    }
     return response.data;
   } catch (error) {
     console.error('Error fetching user details:', error);
@@ -45,8 +42,10 @@ export const deleteUser = async (userId) => {
 };
 
 // Function to create a new company
-export const createCompany = async (token, companyData) => {
+// Function to create a new company
+export const createCompany = async (companyData) => {
   try {
+    const token = getTokenFromLocalStorage(); // Retrieve the token from localStorage
     const response = await axios.post(`${backendBaseUrl}/api/company/create`, companyData, {
       headers: {
         Authorization: `Bearer ${token}`, // Pass the authentication token

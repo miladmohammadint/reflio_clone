@@ -13,9 +13,9 @@ const saveTokenToLocalStorage = (token) => {
   };
 
 // Function to retrieve the token from localStorage
-const getTokenFromLocalStorage = () => {
-  return localStorage.getItem(TOKEN_KEY);
-};
+export const getTokenFromLocalStorage = () => {
+    return localStorage.getItem(TOKEN_KEY);
+  };
 
 // Define the signup function
 export const signup = async (username: string, password: string) => {
@@ -43,8 +43,8 @@ export const signin = async (username: string, password: string) => {
             username,
             password
         });
+        console.log('Signin response data:', response.data); 
         const { data } = response;
-        console.log('Signin response data:', data); // Log the response data
         // Save the token to localStorage
         saveTokenToLocalStorage(data.token);
         return data;

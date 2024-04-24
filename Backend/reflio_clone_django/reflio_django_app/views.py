@@ -1,24 +1,22 @@
 from django.shortcuts import render
-from django.middleware.csrf import get_token  # Import get_token to generate CSRF token
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from django.http import JsonResponse
-from django.http import HttpResponse
 from django.contrib.auth import authenticate, login, logout
 from django.views.decorators.csrf import csrf_exempt
 import json
-from django.contrib.auth.decorators import login_required  # Import login_required decorator
-from django.contrib.auth.models import User  # Import User model
-from .models import Company, Team, UserDetails  # Import UserDetails model
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
+from .models import Company, Team, UserDetails
 from django.views.decorators.cache import never_cache
-import logging  # Import logging module
-from rest_framework.authtoken.models import Token  # Import Token model
+import logging
+from rest_framework.authtoken.models import Token
 from rest_framework.exceptions import NotFound
-from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
+from .models import UserDetails  # Import UserDetails model
 
 
-logger = logging.getLogger(__name__)  # Initialize logger
+logger = logging.getLogger(__name__) 
 
 @never_cache
 @csrf_exempt
@@ -58,6 +56,9 @@ def signup(request):
         user = User.objects.create_user(username=username, email=email, password=password)
 
         if user is not None:
+            # Create user details
+            UserDetails.objects.create(user=user)  # Create user details upon signup
+            
             # Log in the user
             login(request, user)
             # Generate or retrieve token for the user
@@ -69,10 +70,15 @@ def signup(request):
         return JsonResponse({'error': 'Method not allowed'}, status=405)
 
 @api_view(['POST'])
+@permission_classes([IsAuthenticated])  # Add this decorator to enforce authentication
 def create_company(request):
     if request.method == 'POST':
         # Logging request headers
         logger.info('Request Headers: %s', request.headers)
+        
+        # Ensure that the user has the necessary permissions to create a company
+        if not request.user.has_perm('your_app.add_company'):
+            return JsonResponse({'error': 'You do not have permission to create a company'}, status=403)
         
         # Extract company data from the request
         company_name = request.data.get('company_name')
@@ -96,7 +102,7 @@ def create_company(request):
     else:
         # Return an error response for non-POST requests
         return JsonResponse({'error': 'Method not allowed'}, status=405)
-
+    
 @never_cache
 @csrf_exempt
 def signout(request):
@@ -110,32 +116,26 @@ def signout(request):
 @never_cache
 @csrf_exempt
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def user_details_view(request):
     if request.method == 'GET':
-        if 'Authorization' in request.headers:
-            try:
-                # Extract the token from the Authorization header
-                token = request.headers['Authorization'].split(' ')[1]
-                # Retrieve the user associated with the token
-                user = Token.objects.get(key=token).user
-                # Fetch user details
-                user_details = UserDetails.objects.get(user=user)  
-                # Serialize user details as needed
-                user_data = {
-                    'username': user.username,
-                    'email': user.email,
-                    # Add other user details
-                }
-                return JsonResponse(user_data)
-            except Token.DoesNotExist:
-                raise NotFound('Token does not exist')  # Raise an appropriate exception
-            except UserDetails.DoesNotExist:
-                raise NotFound('User details not found')  # Raise an appropriate exception
-        else:
-            return JsonResponse({'error': 'Authorization header missing'}, status=401)
+        try:
+            # Fetch user details based on the user's ID
+            user = request.user
+            user_details = UserDetails.objects.get(user=user)
+            # Construct user data to be returned in the response
+            user_data = {
+                'user_id': user.id,
+                'username': user.username,
+                # Add other user details as needed
+            }
+            return JsonResponse(user_data)
+        except UserDetails.DoesNotExist:
+            return JsonResponse({'error': 'User details not found'}, status=404)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
     else:
         return JsonResponse({'error': 'Method not allowed'}, status=405)
-
 
 @login_required
 @never_cache

@@ -1,6 +1,8 @@
 import uuid
 from django.contrib.auth.models import User
 from django.db import models
+from django.contrib.auth.models import Permission
+
 
 def generate_uid():
     return str(uuid.uuid4())
@@ -53,7 +55,14 @@ class Company(models.Model):
     stripe_id = models.CharField(max_length=255, null=True, blank=True)
     active_company = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True)
-    
+
+    class Meta:
+        permissions = [
+            ("custom_add_company", "Can add company"),
+            ("custom_change_company", "Can change company"),
+            ("custom_delete_company", "Can delete company"),
+        ]
+
 class Campaign(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     team = models.ForeignKey(Team, on_delete=models.CASCADE)
