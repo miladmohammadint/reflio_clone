@@ -9,7 +9,7 @@ def generate_uid():
 
 class Team(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
-    team_id = models.CharField(max_length=15, unique=True, default=generate_uid)
+    team_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     team_name = models.CharField(max_length=255, blank=True, null=True)
     billing_address = models.JSONField(null=True)
     payment_method = models.JSONField(null=True)

@@ -14,9 +14,17 @@ from rest_framework.authtoken.models import Token
 from rest_framework.exceptions import NotFound
 from rest_framework.permissions import IsAuthenticated
 from .models import UserDetails  # Import UserDetails model
+import uuid
 
 
 logger = logging.getLogger(__name__) 
+
+# Define the generate_team_id function
+def generate_team_id():
+    """
+    Generate a unique team ID using UUID (Universally Unique Identifier).
+    """
+    return str(uuid.uuid4())
 
 @never_cache
 @csrf_exempt
@@ -58,6 +66,10 @@ def signup(request):
         if user is not None:
             # Create user details
             UserDetails.objects.create(user=user)  # Create user details upon signup
+            
+            # Create team for the user
+            team_id = generate_team_id()  # You need to implement a function to generate a unique team ID
+            team = Team.objects.create(user=user, team_id=team_id)
             
             # Log in the user
             login(request, user)
@@ -137,8 +149,8 @@ def user_details_view(request):
     else:
         return JsonResponse({'error': 'Method not allowed'}, status=405)
 
-@login_required
 @never_cache
+@csrf_exempt
 @api_view(['GET'])
 def get_team(request):
     if request.method == 'GET':
@@ -156,7 +168,18 @@ def get_team(request):
                 }
                 return JsonResponse(team_data)
             except Team.DoesNotExist:
-                return JsonResponse({'error': 'Team not found'}, status=404)
+                # If the team doesn't exist, create a new team record
+                team_id = generate_team_id()  # Generate a unique team ID
+                new_team = Team.objects.create(
+                    user=request.user,
+                    team_id=team_id
+                    # Add other fields as needed
+                )
+                team_data = {
+                    'team_id': team_id,
+                    # Add default values for other fields if necessary
+                }
+                return JsonResponse(team_data, status=201)  # Return HTTP 201 Created
         else:
             return JsonResponse({'error': 'User is not authenticated'}, status=401)
     else:
