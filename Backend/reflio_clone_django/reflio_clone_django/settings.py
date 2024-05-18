@@ -52,7 +52,7 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',  # Place CorsMiddleware before other middleware
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    #'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -176,4 +176,12 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
         # Other authentication classes as needed
     ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        # 'rest_framework.permissions.IsAuthenticated',
+        'rest_framework.permissions.AllowAny',
+    ],
 }
+
+# Disable CSRF protection for DRF views
+CSRF_COOKIE_NAME = "csrf_token"  # Set a custom CSRF cookie name
+CSRF_TRUSTED_ORIGINS = ['http://localhost:3000']  # Add your frontend URL to trusted origins

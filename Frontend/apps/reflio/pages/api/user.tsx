@@ -3,6 +3,24 @@ import { getTokenFromLocalStorage } from './auth'; // Import the getTokenFromLoc
 
 const backendBaseUrl = 'http://localhost:8000'; // Adjust the base URL to match your Django backend
 
+// Set Axios defaults to send credentials (including cookies) with requests
+axios.defaults.withCredentials = true;
+
+// Set Axios defaults for CSRF token handling
+axios.defaults.xsrfCookieName = 'csrftoken';
+axios.defaults.xsrfHeaderName = 'X-CSRFToken';
+
+// Function to get CSRF token from cookies
+export const getCSRFToken = () => {
+  const csrfCookie = document.cookie.split('; ').find(row => row.startsWith('csrftoken='));
+  if (csrfCookie) {
+    return csrfCookie.split('=')[1];
+  } else {
+    console.error('CSRF token not found in cookies');
+    return null;
+  }
+};
+
 // Function to fetch user details
 export const getUserDetails = async () => {
   try {
@@ -42,15 +60,24 @@ export const deleteUser = async (userId) => {
 };
 
 // Function to create a new company
-// Function to create a new company
 export const createCompany = async (companyData) => {
   try {
-    const token = getTokenFromLocalStorage(); // Retrieve the token from localStorage
+    // Retrieve CSRF token from cookies using the getCSRFToken function
+    const csrfToken = getCSRFToken();
+
+    // Check if CSRF token is valid
+    if (!csrfToken || csrfToken.length !== 32) {
+      console.error('Invalid CSRF token:', csrfToken);
+      throw new Error('Invalid CSRF token');
+    }
+
+    // Send request with CSRF token in headers
     const response = await axios.post(`${backendBaseUrl}/api/company/create`, companyData, {
       headers: {
-        Authorization: `Bearer ${token}`, // Pass the authentication token
+        'X-CSRFToken': csrfToken, // Include the CSRF token in the headers
       },
     });
+
     return response.data;
   } catch (error) {
     console.error('Error creating company:', error);

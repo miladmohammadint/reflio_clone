@@ -3,7 +3,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from django.http import JsonResponse
 from django.contrib.auth import authenticate, login, logout
-from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 import json
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
@@ -14,6 +14,7 @@ from rest_framework.authtoken.models import Token
 from rest_framework.exceptions import NotFound
 from rest_framework.permissions import IsAuthenticated
 from .models import UserDetails  # Import UserDetails model
+from django.middleware import csrf
 import uuid
 
 
@@ -80,26 +81,41 @@ def signup(request):
             return JsonResponse({'error': 'Failed to create user'}, status=400)
     else:
         return JsonResponse({'error': 'Method not allowed'}, status=405)
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])  # Add this decorator to enforce authentication
+    
+@csrf_exempt
+@ensure_csrf_cookie
+@api_view(['POST', 'GET'])
 def create_company(request):
     if request.method == 'POST':
         # Logging request headers
         logger.info('Request Headers: %s', request.headers)
         
-        # Ensure that the user has the necessary permissions to create a company
-        if not request.user.has_perm('your_app.add_company'):
-            return JsonResponse({'error': 'You do not have permission to create a company'}, status=403)
-        
         # Extract company data from the request
         company_name = request.data.get('company_name')
         company_url = request.data.get('company_url')
         company_handle = request.data.get('company_handle')
+        team_id = request.data.get('team_id')
         # Other company fields...
         
+        if not company_name:
+            return JsonResponse({'error': 'Company name is required'}, status=400)
+        if not company_url:
+            return JsonResponse({'error': 'Company URL is required'}, status=400)
+        if not company_handle:
+            return JsonResponse({'error': 'Company handle is required'}, status=400)
+        if not team_id:
+            return JsonResponse({'error': 'Team ID is required'}, status=400)
+        
+        # Retrieve the team based on team_id
+        try:
+            team = Team.objects.get(team_id=team_id)
+        except Team.DoesNotExist:
+            return JsonResponse({'error': 'Team not found'}, status=404)
+
         # Create a new Company object and save it to the database
         company = Company.objects.create(
+            user=team.user,  # Assuming user is associated with the team
+            team=team,
             company_name=company_name,
             company_url=company_url,
             company_handle=company_handle,
@@ -110,9 +126,15 @@ def create_company(request):
         redirect_url = 'http://localhost:3000/'  # Modify this if the URL is different
         
         # Return a JSON response indicating success and including redirect URL
-        return JsonResponse({'success': True, 'redirect_url': redirect_url})
-    else:
-        # Return an error response for non-POST requests
+        response_data = {'success': True, 'redirect_url': redirect_url}
+        response = JsonResponse(response_data)
+        
+        # Include CSRF token in the response headers
+        csrf_token = csrf.get_token(request)
+        response['X-CSRFToken'] = csrf_token
+        
+        return response
+    elif request.method == 'GET':
         return JsonResponse({'error': 'Method not allowed'}, status=405)
     
 @never_cache
