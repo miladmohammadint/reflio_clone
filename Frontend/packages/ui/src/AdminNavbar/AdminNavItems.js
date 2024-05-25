@@ -1,13 +1,11 @@
 import { Fragment, useEffect } from 'react';
-import { useUser, handleActiveCompany } from '@/utils/useUser';
+import { useUser } from '@/utils/useUser';
 import { useRouter } from 'next/router';
 import { classNames } from '@/utils/helpers';
-import { useCompany } from '@/utils/CompanyContext';
 import { Listbox, Transition } from '@headlessui/react';
 import { CheckIcon, SelectorIcon } from '@heroicons/react/solid';
 import {
   CreditCardIcon,
-  TemplateIcon,
   CogIcon,
   ClipboardCheckIcon,
   UserGroupIcon,
@@ -26,11 +24,13 @@ import Link from 'next/link';
 
 export const AdminNavItems = () => {
   console.log('AdminNavItems component mounted');
-  const { signOut, planDetails } = useUser();
-  const { activeCompany, userCompanyDetails } = useCompany();
+  const { signOut, planDetails, activeCompany, userCompanyDetails, updateActiveCompany } = useUser();
   const router = useRouter();
 
-  console.log('userCompanyDetails:', userCompanyDetails);
+  // Log userCompanyDetails to ensure it is populated
+  useEffect(() => {
+    console.log('userCompanyDetails:', userCompanyDetails);
+  }, [userCompanyDetails]);
 
   const manageNavigation = [
     { name: 'Analytics', href: `/dashboard/${activeCompany?.company_id}/analytics`, icon: ChartBarIcon },
@@ -52,11 +52,10 @@ export const AdminNavItems = () => {
   const handleCompanySwitch = async (companyId) => {
     if (!companyId) return false;
 
-    await handleActiveCompany(companyId).then((result) => {
-      if (result === 'success') {
-        router.replace(`/dashboard/${companyId}`);
-      }
-    });
+    const result = await updateActiveCompany(companyId);
+    if (result === 'success') {
+      router.replace(`/dashboard/${companyId}`);
+    }
   };
 
   useEffect(() => {
@@ -74,26 +73,18 @@ export const AdminNavItems = () => {
     <>
       <nav className="mt-6 flex-1 flex flex-col overflow-y-auto" aria-label="Sidebar">
         <div className="px-4 space-y-1 pb-3">
-          <Listbox onChange={value => { handleCompanySwitch(value) }} value={activeCompany?.company_id}>
+          <Listbox onChange={handleCompanySwitch} value={activeCompany?.company_id}>
             {({ open }) => (
               <>
                 <div className="relative">
-                  <Listbox.Button className="relative w-full bg-white rounded-xl font-semibold pl-3 pr-10 py-3 flex text-left cursor-pointer focus:outline-none sm:text-sm border-2 border-gray-300">
-                    <span className="relative w-5 h-5 rounded-full flex items-center mr-2">
-                      {
-                        activeCompany?.company_url &&
-                        <img
-                          className="w-full h-full object-fit-contain"
-                          src={'https://s2.googleusercontent.com/s2/favicons?domain=' + activeCompany?.company_url + ''}
-                          alt={`${activeCompany?.company_name} Image`}
-                        />
-                      }
+                  <Listbox.Button className="relative w-full bg-gray-200 border border-gray-300 rounded-md shadow-sm pl-3 pr-10 py-2 text-left cursor-default sm:text-sm">
+                    <span className="flex items-center">
+                      <span className="ml-3 block truncate">
+                        {activeCompany ? activeCompany.company_name : 'No active company'}
+                      </span>
                     </span>
-                    <span className="flex items-center truncate">
-                      {activeCompany?.company_name}
-                    </span>
-                    <span className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
-                      <SelectorIcon className="h-5 w-5" aria-hidden="true" />
+                    <span className="ml-3 absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                      <SelectorIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
                     </span>
                   </Listbox.Button>
 
@@ -104,32 +95,34 @@ export const AdminNavItems = () => {
                     leaveFrom="opacity-100"
                     leaveTo="opacity-0"
                   >
-                    <Listbox.Options
-                      static
-                      className="top-0 left-0 absolute rounded-lg z-20 w-full bg-white max-h-60 text-base overflow-auto focus:outline-none sm:text-sm border-4 border-primary-2 shadow-xl shadow-secondary"
-                    >
+                    <Listbox.Options className="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-56 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm">
                       {userCompanyDetails?.map((company) => (
                         <Listbox.Option
-                          key={company?.company_id}
-                          className={({ selected, active }) =>
+                          key={company.company_id}
+                          className={({ active }) =>
                             classNames(
-                              selected && 'bg-primary',
-                              'cursor-pointer select-none relative py-3 px-5 border-b-2'
+                              active ? 'text-white bg-primary-600' : 'text-gray-900',
+                              'cursor-default select-none relative py-2 pl-3 pr-9'
                             )
                           }
-                          value={company?.company_id}
+                          value={company.company_id}
                         >
                           {({ selected, active }) => (
                             <>
-                              <div className="flex">
-                                <span className={classNames(selected ? 'font-bold' : 'font-medium', 'flex items-center truncate pl-4')}>
-                                  {company?.company_name}
+                              <div className="flex items-center">
+                                <span
+                                  className={classNames(selected ? 'font-semibold' : 'font-normal', 'ml-3 block truncate')}
+                                >
+                                  {company.company_name}
                                 </span>
                               </div>
 
                               {selected ? (
                                 <span
-                                  className="absolute inset-y-0 left-0 flex items-center pl-3"
+                                  className={classNames(
+                                    active ? 'text-white' : 'text-primary-600',
+                                    'absolute inset-y-0 right-0 flex items-center pr-4'
+                                  )}
                                 >
                                   <CheckIcon className="h-5 w-5" aria-hidden="true" />
                                 </span>
@@ -140,8 +133,8 @@ export const AdminNavItems = () => {
                       ))}
                       <Link
                         passHref
-                        href="/dashboard/add-company"
-                        className="block bg-gray-200 cursor-pointer select-none font-semibold relative py-3 px-5 -mt-1"
+                        href="/company/new"
+                        className="relative cursor-default select-none py-2 pl-3 pr-9 text-secondary-600 hover:text-secondary-800 hover:bg-gray-100"
                       >
                         + Add company
                       </Link>

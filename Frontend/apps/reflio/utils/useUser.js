@@ -1,22 +1,34 @@
 import { useEffect, useState, createContext, useContext } from 'react';
 import { useRouter } from 'next/router';
-import axios from 'axios';  // Add axios for making API requests
+import axios from 'axios';
 
-// Adjust the following import statements based on your Django backend setup
 import { signin, signup, signout } from '../pages/api/auth';
-import { getUserDetails, getTeam, getSubscription, createCompany } from '../pages/api/user'; // Import getUserDetails, getTeam, and createCompany
+import { getUserDetails, getTeam, getSubscription, createCompany } from '../pages/api/user';
 import { backendBaseUrl } from '../pages/api/user';
 
 export const UserContext = createContext();
 
-// Define the getCompanies function
 export const getCompanies = async (userId) => {
   try {
-    const response = await axios.get(backendBaseUrl + '/api/get_company_details'); // Adjust the URL to your actual endpoint
+    const response = await axios.get(backendBaseUrl + '/api/get_company_details');
     return response.data;
   } catch (error) {
     console.error('Error fetching companies:', error);
     return [];
+  }
+};
+
+export const handleActiveCompany = async (companyId) => {
+  try {
+    const response = await axios.post(backendBaseUrl + `/api/companies/${companyId}/set-active`);
+    if (response.status === 200) {
+      return 'success';
+    } else {
+      return 'error';
+    }
+  } catch (error) {
+    console.error('Error setting active company:', error);
+    return 'error';
   }
 };
 
@@ -29,24 +41,28 @@ export const UserContextProvider = (props) => {
   const [userDetails, setUserDetails] = useState(null);
   const [subscription, setSubscription] = useState(null);
   const [planDetails, setPlanDetails] = useState(null);
+  const [activeCompany, setActiveCompany] = useState(null);
+  const [userCompanyDetails, setUserCompanyDetails] = useState([]);
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        // Fetch user details from Django backend using the imported getUserDetails function
         const userDetails = await getUserDetails();
         setUser(userDetails);
         setUserDetails(userDetails);
 
-        // Fetch team details from Django backend using the imported getTeam function
         const teamDetails = await getTeam();
         setTeam(teamDetails);
 
-        // Fetch subscription details from Django backend using the imported getSubscription function
         const subscriptionDetails = await getSubscription();
         setSubscription(subscriptionDetails);
 
-        // Set user loaded state to true
+        const companies = await getCompanies(userDetails.id);
+        setUserCompanyDetails(companies);
+        if (companies.length > 0) {
+          setActiveCompany(companies[0]);
+        }
+
         setUserLoaded(true);
       } catch (error) {
         console.error('Error fetching user data:', error);
@@ -70,13 +86,11 @@ export const UserContextProvider = (props) => {
       router.push('/');
     } catch (error) {
       console.error('Sign out error:', error);
-      // Handle sign-out error here
     }
   };
 
   const newCompany = async (userDetails, companyData) => {
     try {
-      // Call your API endpoint to create a new company using the imported createCompany function
       const result = await createCompany(userDetails, companyData);
       return result;
     } catch (error) {
@@ -111,7 +125,14 @@ export const UserContextProvider = (props) => {
     }
   };
 
-  // Other utility functions can be added here based on your application requirements
+  const updateActiveCompany = async (companyId) => {
+    const result = await handleActiveCompany(companyId);
+    if (result === 'success') {
+      const newActiveCompany = userCompanyDetails.find(company => company.company_id === companyId);
+      setActiveCompany(newActiveCompany);
+    }
+    return result;
+  };
 
   const value = {
     user,
@@ -121,11 +142,14 @@ export const UserContextProvider = (props) => {
     subscription,
     userFinderLoaded,
     planDetails,
+    activeCompany,
+    userCompanyDetails,
     signIn,
     signUp,
     signOut,
     newCompany,
     newCampaign,
+    updateActiveCompany
   };
 
   return <UserContext.Provider value={value} {...props} />;
