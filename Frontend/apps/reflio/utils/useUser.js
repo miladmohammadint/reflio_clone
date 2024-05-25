@@ -1,11 +1,24 @@
 import { useEffect, useState, createContext, useContext } from 'react';
 import { useRouter } from 'next/router';
+import axios from 'axios';  // Add axios for making API requests
 
 // Adjust the following import statements based on your Django backend setup
 import { signin, signup, signout } from '../pages/api/auth';
 import { getUserDetails, getTeam, getSubscription, createCompany } from '../pages/api/user'; // Import getUserDetails, getTeam, and createCompany
+import { backendBaseUrl } from '../pages/api/user';
 
 export const UserContext = createContext();
+
+// Define the getCompanies function
+export const getCompanies = async (userId) => {
+  try {
+    const response = await axios.get(backendBaseUrl + '/api/get_company_details'); // Adjust the URL to your actual endpoint
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching companies:', error);
+    return [];
+  }
+};
 
 export const UserContextProvider = (props) => {
   const router = useRouter();
@@ -72,6 +85,32 @@ export const UserContextProvider = (props) => {
     }
   };
 
+  const newCampaign = async (userDetails, data, companyId) => {
+    const token = userDetails?.token;
+    const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/company/${companyId}/campaigns`;
+
+    try {
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Error creating campaign');
+      }
+
+      return 'success';
+    } catch (error) {
+      console.error('Error creating campaign:', error);
+      return 'error';
+    }
+  };
+
   // Other utility functions can be added here based on your application requirements
 
   const value = {
@@ -86,6 +125,7 @@ export const UserContextProvider = (props) => {
     signUp,
     signOut,
     newCompany,
+    newCampaign,
   };
 
   return <UserContext.Provider value={value} {...props} />;

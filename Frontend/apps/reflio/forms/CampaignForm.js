@@ -206,181 +206,146 @@ export const CampaignForm = ({ edit, setupMode }) => {
                             </div>
                             <div className="sm:col-span-12">
                               <label htmlFor="minimum_days_payout" className="block text-sm font-medium text-gray-700">
-                                Minimum days before payout
+                                Minimum days until payout
                               </label>
                               <div className="mt-1 flex rounded-md shadow-sm items-center justify-between">
                                 <input
                                   minLength="1"
-                                  maxLength="90"
+                                  maxLength="240"
                                   required
                                   placeholder="30"
                                   type="number"
                                   name="minimum_days_payout"
                                   id="minimum_days_payout"
-                                  defaultValue={edit?.minimum_days_payout ? edit?.minimum_days_payout : 30}
+                                  defaultValue={edit && edit?.minimum_days_payout}
                                   className="flex-1 block w-full min-w-0 p-3 rounded-xl focus:outline-none sm:text-md border-2 border-r-0 rounded-tr-none rounded-br-none border-gray-300"
                                 />
                                 <span className="min-w-0 p-3 rounded-xl focus:outline-none sm:text-md border-2 rounded-tl-none bg-gray-200 rounded-bl-none border-gray-300">days</span>
                               </div>
                             </div>
+                            <div className="sm:col-span-12">
+                              <label data-tip="Your discount type" htmlFor="discount_type" className="block text-sm font-medium text-gray-700">
+                                Discount type
+                              </label>
+                              <div className="mt-1 flex rounded-md shadow-sm">
+                                <select defaultValue={discountType ? discountType : edit && edit?.discount_type} onChange={e=>{setDiscountType(e.target.value)}} className="rounded-xl border-2 border-gray-300 outline-none p-4 w-full" required="required" name="discount_type" id="discount_type">
+                                  <option value="percentage">Percentage off</option>
+                                  <option value="fixed">Fixed amount off</option>
+                                </select>
+                              </div>
+                            </div>
+
+                            {
+                              discountType === 'percentage' &&
+                              <div className="sm:col-span-12">
+                                <label htmlFor="discount_value" className="block text-sm font-medium text-gray-700">
+                                  Discount percentage
+                                </label>
+                                <div className="mt-1 flex rounded-md shadow-sm items-center justify-between">
+                                  <input
+                                    minLength="1"
+                                    maxLength="100"
+                                    required
+                                    placeholder="20"
+                                    type="number"
+                                    name="discount_value"
+                                    id="discount_value"
+                                    defaultValue={edit?.discount_value ? edit?.discount_value : 20}
+                                    autoComplete="discount_value"
+                                    className="flex-1 block w-full min-w-0 p-3 rounded-xl focus:outline-none sm:text-md border-2 border-r-0 rounded-tr-none rounded-br-none border-gray-300"
+                                  />
+                                  <span className="min-w-0 p-3 rounded-xl focus:outline-none sm:text-md border-2 rounded-tl-none bg-gray-200 rounded-bl-none border-gray-300">%</span>
+                                </div>
+                              </div>
+                            }
+
+                            {
+                              discountType === 'fixed' &&
+                              <div className="sm:col-span-12">
+                                <label htmlFor="discount_value" className="block text-sm font-medium text-gray-700">
+                                  Amount
+                                </label>
+                                <div className="mt-1 flex rounded-md shadow-sm items-center justify-between">
+                                  <span className="min-w-0 p-3 rounded-xl focus:outline-none sm:text-md border-2 border-r-0 rounded-tr-none bg-gray-200 rounded-br-none border-gray-300">{activeCompany?.company_currency}</span>
+                                  <input
+                                    minLength="1"
+                                    maxLength="100"
+                                    required
+                                    placeholder="1"
+                                    type="number"
+                                    name="discount_value"
+                                    id="discount_value"
+                                    defaultValue={edit?.discount_value ? edit?.discount_value : 1}
+                                    autoComplete="discount_value"
+                                    className="flex-1 block w-full min-w-0 p-3 rounded-xl focus:outline-none sm:text-md border-2 bor border-r-0 rounded-tl-none rounded-bl-none border-gray-300"
+                                  />
+                                </div>
+                              </div>
+                            }
+
+                            <div className="sm:col-span-12">
+                              <label htmlFor="minimum_purchase_amount" className="block text-sm font-medium text-gray-700">
+                                Minimum purchase amount
+                              </label>
+                              <div className="mt-1 flex rounded-md shadow-sm items-center justify-between">
+                                <span className="min-w-0 p-3 rounded-xl focus:outline-none sm:text-md border-2 border-r-0 rounded-tr-none bg-gray-200 rounded-br-none border-gray-300">{activeCompany?.company_currency}</span>
+                                <input
+                                  minLength="1"
+                                  maxLength="240"
+                                  required
+                                  placeholder="100"
+                                  type="number"
+                                  name="minimum_purchase_amount"
+                                  id="minimum_purchase_amount"
+                                  defaultValue={edit && edit?.minimum_purchase_amount}
+                                  className="flex-1 block w-full min-w-0 p-3 rounded-xl focus:outline-none sm:text-md border-2 border-r-0 rounded-tl-none rounded-bl-none border-gray-300"
+                                />
+                              </div>
+                            </div>
                           </>
                       }
 
-                      {/* <div className="sm:col-span-12">
-                        <label htmlFor="loom_email" className="block text-sm font-medium text-gray-700">
-                          Loom Email Address
-                        </label>
-                        <div className="mt-1 flex rounded-md shadow-sm">
+                      <div className="sm:col-span-12">
+                        <label htmlFor="default_campaign" className="flex items-center h-5">
                           <input
-                            required
-                            placeholder="youremail@example.com"
-                            type="text"
-                            name="loom_email"
-                            id="loom_email"
-                            autoComplete="loom_email"
-                            className="flex-1 block w-full min-w-0 rounded-md focus:outline-none sm:text-sm border-gray-300"
+                            id="default_campaign"
+                            name="default_campaign"
+                            type="checkbox"
+                            defaultChecked={edit?.default_campaign}
+                            className="focus:ring-gray-500 h-4 w-4 text-gray-600 border-gray-300 rounded mr-2"
                           />
-                        </div>
-                      </div> */}
-                  <div className="sm:col-span-12 mt-2">
-                    <div className="relative flex items-start">
-                      <div className="flex items-center h-5">
-                        <input
-                          id="campaign_public"
-                          name="campaign_public"
-                          type="checkbox"
-                          className="focus:ring-primary h-7 w-7 text-secondary border-2 border-gray-300 rounded-full cursor-pointer"
-                          defaultChecked={edit && edit?.campaign_public === false ? false : true}
-                        />
-                      </div>
-                      <div className="ml-3 text-sm">
-                        <label htmlFor="campaign_public" className="text-sm font-medium text-gray-700 cursor-pointer">
-                          Campaign is publicly joinable
+                          <span className="block text-sm font-medium text-gray-700">Make this the default campaign for all of your new customers</span>
                         </label>
                       </div>
                     </div>
                   </div>
-                    </div>
-                  </div>
-                </div>
-
-              </div>
-            </div>
-
-            <div className="text-center -mb-5">
-              <button type="button" onClick={e=>{showAdvancedOptions ? setShowAdvancedOptions(false) : setShowAdvancedOptions(true)}} className="inline-flex bg-white p-3 text-sm font-semibold border-4 border-gray-300 rounded-lg mx-auto">
-                {showAdvancedOptions ? '- Hide advanced options' : '+ Show advanced options'}
-              </button>
-            </div>
-
-            <div className="bg-gray-200 border-t-4 px-6 py-10 space-y-8">
-              <div className="sm:col-span-12">
-                <div>
-                  <p className="text-xl font-bold mb-1">Give new customers a discount (optional)</p>
-                  <p className="text-md mb-5">Enter the details of a discount code that was created in your Stripe account. Adding a discount code <span className="font-semibold">greatly increases conversion rates</span> for both referral sales, and EU based users giving cookie consent.</p>
-                  <div>
-                    <div className="space-y-4">
-                      <div className="mt-1 flex rounded-md shadow-sm items-center justify-between">
-                        <label htmlFor="discount_type" className="min-w-0 p-3 rounded-xl focus:outline-none sm:text-md border-2 border-r-0 rounded-tr-none bg-gray-100 rounded-br-none border-gray-300">Discount type:</label>
-                        <select defaultValue={discountType ? discountType : edit && edit?.discount_type} onChange={e=>{setDiscountType(e.target.value)}} className="flex-1 block w-full min-w-0 p-3 rounded-xl focus:outline-none sm:text-md border-2 bor border-r-0 rounded-tl-none rounded-bl-none border-gray-300" required="required" name="discount_type" id="discount_type">
-                          <option value="percentage">Percentage</option>
-                          <option value="fixed">Fixed amount</option>
-                        </select>
-                      </div>
-                      <div className="mt-1 flex rounded-md shadow-sm items-center justify-between">
-                        <label htmlFor="discount_code" className="min-w-0 p-3 rounded-xl focus:outline-none sm:text-md border-2 border-r-0 rounded-tr-none bg-gray-100 rounded-br-none border-gray-300">Discount code:</label>
-                        <input
-                          minLength="1"
-                          maxLength="100"
-                          placeholder="e.g. 10OFF"
-                          type="text"
-                          name="discount_code"
-                          id="discount_code"
-                          defaultValue={edit && edit?.discount_code}
-                          autoComplete="discount_code"
-                          className="flex-1 block w-full min-w-0 p-3 rounded-xl focus:outline-none sm:text-md border-2 bor border-r-0 rounded-tl-none rounded-bl-none border-gray-300"
-                        />
-                      </div>
-
-                      {
-                        discountType === 'percentage' &&
-                        <div className="mt-1 flex rounded-md shadow-sm items-center justify-between">
-                          <label htmlFor="discount_value" className="min-w-0 p-3 rounded-xl focus:outline-none sm:text-md border-2 border-r-0 rounded-tr-none bg-gray-100 rounded-br-none border-gray-300">Discount percentage:</label>
-                          <input
-                            minLength="1"
-                            maxLength="100"
-                            placeholder="15"
-                            type="number"
-                            name="discount_value"
-                            id="discount_value"
-                            defaultValue={edit && edit?.discount_value}
-                            autoComplete="discount_value"
-                            className="flex-1 block w-full min-w-0 p-3 focus:outline-none sm:text-md border-2 border-r-0 rounded-none border-gray-300"
-                          />
-                          <span className="min-w-0 p-3 rounded-xl focus:outline-none sm:text-md border-2 rounded-tl-none bg-gray-200 rounded-bl-none border-gray-300">%</span>
-                        </div>
-                      }
-
-                      {
-                        discountType === 'fixed' &&
-                        <div className="mt-1 flex rounded-md shadow-sm items-center justify-between">
-                          <label htmlFor="discount_value" className="min-w-0 p-3 rounded-xl focus:outline-none sm:text-md border-2 border-r-0 rounded-tr-none bg-gray-100 rounded-br-none border-gray-300">Discount amount: {activeCompany?.company_currency}</label>
-                          <input
-                            minLength="1"
-                            maxLength="100"
-                            placeholder="15"
-                            type="number"
-                            name="discount_value"
-                            id="discount_value"
-                            defaultValue={edit && edit?.discount_value}
-                            autoComplete="discount_value"
-                            className="flex-1 block w-full min-w-0 p-3 focus:outline-none sm:text-md border-2 border-l-0 rounded-tl-none rounded-bl-none rounded-xl border-gray-300"
-                          />
-                        </div>
-                      }
-                    </div>
-                  </div>
                 </div>
               </div>
-            </div>
 
-            <div className="border-t-4 px-6 py-8 space-y-8">
-              <div className="sm:col-span-12">
-                <div className="relative flex items-start">
-                  <div className="flex items-center h-5">
-                    <input
-                      id="default_campaign"
-                      name="default_campaign"
-                      type="checkbox"
-                      className="focus:ring-primary h-7 w-7 text-secondary border-2 border-gray-400 rounded-full cursor-pointer"
-                      defaultChecked={setupMode === true ? true : edit && edit?.default_campaign ? true : false}
-                    />
-                  </div>
-                  <div className="ml-3 text-sm">
-                    <label htmlFor="default_campaign" className="text-sm font-medium text-gray-700 cursor-pointer">
-                      Set as default campaign
-                    </label>
-                  </div>
+              <div className="py-5">
+                <div className="flex flex-col justify-between md:flex-row">
+                  <Button
+                    className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                    onClick={() => setShowAdvancedOptions(!showAdvancedOptions)}
+                  >
+                    {showAdvancedOptions ? 'Hide' : 'Show'} Advanced Options
+                  </Button>
+                  <Button
+                    type="submit"
+                    className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                  >
+                    {loading ? <LoadingDots /> : edit ? 'Update Campaign' : 'Create Campaign'}
+                  </Button>
                 </div>
               </div>
-            </div>
-
-            <div className="border-t-4 px-6 py-8 bg-white flex items-center justify-start relative">
-              <Button
-                large
-                primary
-                disabled={loading}
-              >
-                <span>{loading ? edit ? 'Editing Campaign...' : 'Creating Campaign...' : edit ? 'Save Changes' : 'Create Campaign'}</span>
-              </Button>
             </div>
           </form>
         :
-          <LoadingDots/>
+        <div className="py-4 text-gray-700 text-center">
+          <LoadingDots />
+        </div>
       }
-      <ReactTooltip/>
+      <ReactTooltip place="top" effect="solid" />
     </div>
   )
-};
-
-export default CampaignForm;
+}

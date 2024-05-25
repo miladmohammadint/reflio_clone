@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { getTokenFromLocalStorage } from './auth'; // Import the getTokenFromLocalStorage function
 
-const backendBaseUrl = 'http://localhost:8000'; // Adjust the base URL to match your Django backend
+export const backendBaseUrl = 'http://localhost:8000'; // Adjust the base URL to match your Django backend
 
 // Set Axios defaults to send credentials (including cookies) with requests
 axios.defaults.withCredentials = true;

@@ -1,4 +1,3 @@
-import { campaignInfo } from '@/utils/useDatabase';
 import Cors from 'cors';
 import { withSentry } from '@sentry/nextjs';
 
@@ -22,7 +21,6 @@ function runMiddleware(req, res, fn) {
 }
 
 const campaignDetails = async (req, res) => {
-
   // Run the middleware
   await runMiddleware(req, res, cors);
 
@@ -34,17 +32,33 @@ const campaignDetails = async (req, res) => {
   }
 
   try {
-    if(body?.referralCode && body?.companyId){
-      const details = await campaignInfo(body?.referralCode, body?.companyId);
-      return res.status(200).json({ statusCode: 200, campaign_details: details }); 
+    if (body?.referralCode && body?.companyId) {
+      // Replace this block with code to fetch campaign details from the Django backend
+      // Use fetch or any other HTTP client library to make a request to your Django endpoint
+      const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/campaign-details`;
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          referralCode: body.referralCode,
+          companyId: body.companyId,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch campaign details');
+      }
+
+      const data = await response.json();
+      return res.status(200).json({ statusCode: 200, campaign_details: data });
     }
 
     return res.status(500).json({ statusCode: 500, verified: false });
-
   } catch (error) {
     console.log(error);
     return res.status(500).json({ error: { statusCode: 500, verified: false } });
-
   }
 };
 

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { AdminNavItems } from "./AdminNavItems";
 
 export const AdminDesktopNav = () => {
+  console.log('AdminDesktopNav component mounted');
   return (
     <>
       <div className="group hidden border-r-4 border-gray-300 bg-gray-200 transition duration-500 lg:flex lg:flex-shrink-0">

@@ -17,6 +17,8 @@ from django.contrib import admin
 from django.urls import path, include
 from reflio_django_app import views
 from rest_framework.authtoken.views import ObtainAuthToken
+from reflio_django_app.views import campaign_details, get_company_details
+
 
 
 urlpatterns = [
@@ -25,9 +27,12 @@ urlpatterns = [
     path('api/signup/', views.signup, name='signup'),  # Maps to Auth.js
     path('api/user/details/', views.user_details_view, name='user_details_view'),  # New URL pattern for user details
     path('api/company/create', views.create_company, name='create_company'),  # New URL pattern for creating a company
+    path('api/get_company_details/', views.get_company_details, name='get_company_details'),
     path('accounts/', include('django.contrib.auth.urls')),
     path('api/signout/', views.signout, name='signout'),  # New URL pattern for signout
     path('api/team/', views.get_team, name='get_team'),
     path('api/subscription', views.get_subscription, name='get_subscription'),
     path('api/token/', ObtainAuthToken.as_view(), name='api_token_auth'),
+    path('api/campaigns/create/', views.create_campaign, name='create-campaign'),
+    path('campaign-details/', campaign_details, name='campaign_details'),
 ]

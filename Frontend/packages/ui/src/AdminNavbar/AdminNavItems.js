@@ -13,32 +13,31 @@ import {
   UserGroupIcon,
   ChartBarIcon,
   SparklesIcon,
-  ChatAltIcon,
+  CurrencyDollarIcon,
+  CloudDownloadIcon,
+  CollectionIcon,
+  GiftIcon,
+  BellIcon,
   BookOpenIcon,
   MapIcon,
-  SupportIcon,
-  CurrencyDollarIcon,
-  BellIcon,
-  GiftIcon,
-  CollectionIcon,
-  ChipIcon,
-  CloudDownloadIcon
+  SupportIcon
 } from '@heroicons/react/outline';
 import Link from 'next/link';
 
 export const AdminNavItems = () => {
+  console.log('AdminNavItems component mounted');
   const { signOut, planDetails } = useUser();
   const { activeCompany, userCompanyDetails } = useCompany();
   const router = useRouter();
 
+  console.log('userCompanyDetails:', userCompanyDetails);
+
   const manageNavigation = [
     { name: 'Analytics', href: `/dashboard/${activeCompany?.company_id}/analytics`, icon: ChartBarIcon },
-    // { name: 'Home', href: `/dashboard/${activeCompany?.company_id}/home`, icon: TemplateIcon },
     { name: 'Campaigns', href: `/dashboard/${activeCompany?.company_id}/campaigns`, icon: CollectionIcon },
     { name: 'Affiliates', href: `/dashboard/${activeCompany?.company_id}/affiliates`, icon: UserGroupIcon },
     { name: 'Referrals', href: `/dashboard/${activeCompany?.company_id}/referrals`, icon: SparklesIcon },
     { name: 'Sales & Commissions', href: `/dashboard/${activeCompany?.company_id}/commissions`, icon: CurrencyDollarIcon },
-    // { name: 'Apps', href: `/dashboard/${activeCompany?.company_id}/apps`, icon: ChipIcon },
     { name: 'Assets', href: `/dashboard/${activeCompany?.company_id}/assets`, icon: CloudDownloadIcon },
     { name: 'Company', href: `/dashboard/${activeCompany?.company_id}/settings`, icon: CogIcon }
   ];
@@ -51,30 +50,31 @@ export const AdminNavItems = () => {
   const navItemClass = 'flex items-center py-1 px-2 my-0.5 text-[15px] font-semibold rounded-lg hover:bg-gray-300';
 
   const handleCompanySwitch = async (companyId) => {
-    if(!companyId) return false;
+    if (!companyId) return false;
 
     await handleActiveCompany(companyId).then((result) => {
-      if(result === "success"){
+      if (result === 'success') {
         router.replace(`/dashboard/${companyId}`);
       }
     });
   };
 
   useEffect(() => {
-    if(typeof Canny !== 'undefined'){
+    console.log('useEffect triggered');
+    if (typeof Canny !== 'undefined') {
       Canny('initChangelog', {
         appID: '63109013e111097776764cdd',
         position: 'bottom',
         align: 'left',
       });
     }
-  }, [])
-  
-  return(
+  }, []);
+
+  return (
     <>
       <nav className="mt-6 flex-1 flex flex-col overflow-y-auto" aria-label="Sidebar">
         <div className="px-4 space-y-1 pb-3">
-          <Listbox onChange={value=>{handleCompanySwitch(value)}} value={activeCompany?.company_id}>
+          <Listbox onChange={value => { handleCompanySwitch(value) }} value={activeCompany?.company_id}>
             {({ open }) => (
               <>
                 <div className="relative">
@@ -82,10 +82,10 @@ export const AdminNavItems = () => {
                     <span className="relative w-5 h-5 rounded-full flex items-center mr-2">
                       {
                         activeCompany?.company_url &&
-                        <img 
+                        <img
                           className="w-full h-full object-fit-contain"
-                          src={'https://s2.googleusercontent.com/s2/favicons?domain='+activeCompany?.company_url+''} 
-                          alt={`${activeCompany?.company_name} Image`} 
+                          src={'https://s2.googleusercontent.com/s2/favicons?domain=' + activeCompany?.company_url + ''}
+                          alt={`${activeCompany?.company_name} Image`}
                         />
                       }
                     </span>
@@ -121,11 +121,11 @@ export const AdminNavItems = () => {
                         >
                           {({ selected, active }) => (
                             <>
-                            <div className="flex">
-                              <span className={classNames(selected ? 'font-bold' : 'font-medium', 'flex items-center truncate pl-4')}>
-                                {company?.company_name}
-                              </span>
-                            </div>
+                              <div className="flex">
+                                <span className={classNames(selected ? 'font-bold' : 'font-medium', 'flex items-center truncate pl-4')}>
+                                  {company?.company_name}
+                                </span>
+                              </div>
 
                               {selected ? (
                                 <span
@@ -138,8 +138,8 @@ export const AdminNavItems = () => {
                           )}
                         </Listbox.Option>
                       ))}
-                      <Link 
-                        passHref 
+                      <Link
+                        passHref
                         href="/dashboard/add-company"
                         className="block bg-gray-200 cursor-pointer select-none font-semibold relative py-3 px-5 -mt-1"
                       >
@@ -198,7 +198,7 @@ export const AdminNavItems = () => {
               className={classNames(
                 navItemClass,
                 "text-secondary-2"
-              )} 
+              )}
             >
               <GiftIcon className="mr-2 flex-shrink-0 h-5 w-5" aria-hidden="true" />
               <span>Upgrade</span>
@@ -224,7 +224,7 @@ export const AdminNavItems = () => {
             href="https://reflio.com/resources"
             className={classNames(
               navItemClass
-            )} 
+            )}
             rel="noreferrer"
             target="_blank"
           >
@@ -236,7 +236,7 @@ export const AdminNavItems = () => {
             href="https://reflio.canny.io/"
             className={classNames(
               navItemClass
-            )} 
+            )}
             rel="noreferrer"
             target="_blank"
           >
@@ -248,7 +248,7 @@ export const AdminNavItems = () => {
             href="https://reflio.canny.io/feature-requests"
             className={classNames(
               navItemClass
-            )} 
+            )}
             rel="noreferrer"
             target="_blank"
           >
@@ -258,18 +258,6 @@ export const AdminNavItems = () => {
         </div>
         <div className="pt-3 mt-auto border-t-4 border-gray-300 sticky bottom-0 left-0 bg-gray-200">
           <div className="px-4 space-y-1">
-            {/* {secondaryNavigation.map((item) => (
-              <a
-                key={item.name}
-                href={item.href}
-                className={classNames(
-                  router?.asPath === item.href && 'bg-secondary border-secondary-2 hover:bg-secondary-2 hover:opacity-100',
-                  'items-center px-2 py-2 text-md font-semibold rounded-md border-2 border-transparent'
-                )}
-              >
-                {item.name}
-              </a>
-            ))} */}
             <button
               onClick={() => signOut()}
               className={'items-center px-2 py-2 text-md font-semibold rounded-md'}
@@ -281,7 +269,7 @@ export const AdminNavItems = () => {
         </div>
       </nav>
     </>
-  )
+  );
 };
 
 export default AdminNavItems;
