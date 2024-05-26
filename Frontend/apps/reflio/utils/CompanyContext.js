@@ -16,6 +16,7 @@ export const CompanyContextProvider = (props) => {
       try {
         const results = await getCompanies(user?.id);
         const companies = Array.isArray(results) ? results : [results];
+        console.log('Fetched Company Details:', companies);  // Log fetched company details
         setUserCompanyDetails(companies);
         return companies;
       } catch (error) {
@@ -59,6 +60,8 @@ export const CompanyContextProvider = (props) => {
   let activeCompany = router.query?.companyId ?
     userCompanyDetails?.find(company => company?.company_id === router.query?.companyId) :
     userCompanyDetails?.find(company => company?.active_company === true) || userCompanyDetails?.[0];
+
+  console.log('Active Company:', activeCompany);  // Log active company
 
   value = {
     activeCompany,

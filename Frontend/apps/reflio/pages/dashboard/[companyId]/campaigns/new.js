@@ -2,12 +2,14 @@ import { useRouter } from 'next/router';
 import { CampaignForm } from '@/forms/CampaignForm';
 import { SEOMeta } from '@/templates/SEOMeta'; 
 import Button from '@/components/Button'; 
-import {
-  ArrowNarrowLeftIcon
-} from '@heroicons/react/outline';
+import { ArrowNarrowLeftIcon } from '@heroicons/react/outline';
 
 export default function CreateCampaignPage() {
   const router = useRouter();
+  const companyId = router.query.companyId;
+
+  // Log the companyId to the console
+  console.log("Company ID:", companyId);
 
   return (
     <>
@@ -16,7 +18,7 @@ export default function CreateCampaignPage() {
         <div className="py-8 border-b-4">
           <div className="wrapper">
             <Button
-              href={`/dashboard/${router?.query?.companyId}/campaigns`}
+              href={`/dashboard/${companyId}/campaigns`}
               small
               gray
             >
@@ -27,7 +29,7 @@ export default function CreateCampaignPage() {
         </div>
         <div className="wrapper pt-12">
           <h1 className="text-2xl sm:text-3xl tracking-tight font-extrabold mb-6">Create a new campaign</h1>
-          <CampaignForm/>
+          <CampaignForm companyId={companyId} />
         </div>
       </div>
     </>
