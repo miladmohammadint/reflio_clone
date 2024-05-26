@@ -9,12 +9,24 @@ import ReactTooltip from 'react-tooltip';
 
 export const CampaignForm = ({ edit, setupMode, companyId }) => {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true); // Initially set loading to true
   const [rewardType, setRewardType] = useState('percentage');
   const [discountType, setDiscountType] = useState('percentage');
-  const { activeCompany } = useCompany();
+  const { activeCompany, fetchCompanyDetails } = useCompany(); // Fetch activeCompany details from context
   const { userDetails } = useUser();
   const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
+
+  useEffect(() => {
+    if (!activeCompany) {
+      fetchCompanyDetails() // Fetch activeCompany details when component mounts
+        .then(() => setLoading(false)) // Once data is fetched, set loading to false
+        .catch((error) => {
+          console.error('Error fetching activeCompany:', error);
+          setLoading(false); // Set loading to false in case of error
+          toast.error('Failed to fetch activeCompany details.');
+        });
+    }
+  }, [activeCompany, fetchCompanyDetails]);
 
   useEffect(() => {
     console.log("Active Company:", activeCompany);
@@ -66,6 +78,10 @@ export const CampaignForm = ({ edit, setupMode, companyId }) => {
       setLoading(false);
     }
   };
+
+  if (loading) {
+    return <LoadingDots />;
+  }
 
   return (
     <div>
@@ -127,129 +143,130 @@ export const CampaignForm = ({ edit, setupMode, companyId }) => {
 
                   {rewardType === 'percentage' && (
                     <div className="sm:col-span-12">
-                      <label htmlFor="commission_value" className="block text-sm font-medium text-gray-700">
-                        Commission percentage
+                      <label htmlFor="commission_value" className="block text-sm font-medium
+                      text-gray-700">
+                      Commission percentage
+                    </label>
+                    <div className="mt-1 flex rounded-md shadow-sm items-center justify-between">
+                      <input
+                        minLength="1"
+                        maxLength="100"
+                        required
+                        placeholder="20"
+                        type="number"
+                        name="commission_value"
+                        id="commission_value"
+                        defaultValue={edit?.commission_value ?? 20}
+                        autoComplete="commission_value"
+                        className="flex-1 block w-full min-w-0 p-3 rounded-xl focus:outline-none sm:text-md border-2 border-r-0 rounded-tr-none rounded-br-none border-gray-300"
+                      />
+                      <span className="min-w-0 p-3 rounded-xl focus:outline-none sm:text-md border-2 rounded-tl-none bg-gray-200 rounded-bl-none border-gray-300">
+                        %
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {rewardType === 'fixed' && (
+                  <div className="sm:col-span-12">
+                    <label htmlFor="commission_value" className="block text-sm font-medium text-gray-700">
+                      Amount
+                    </label>
+                    <div className="mt-1 flex rounded-md shadow-sm items-center justify-between">
+                      <span className="min-w-0 p-3 rounded-xl focus:outline-none sm:text-md border-2 border-r-0 rounded-tr-none bg-gray-200 rounded-br-none border-gray-300">
+                        {activeCompany?.company_currency}
+                      </span>
+                      <input
+                        minLength="1"
+                        maxLength="100"
+                        required
+                        placeholder="1"
+                        type="number"
+                        name="commission_value"
+                        id="commission_value"
+                        defaultValue={edit?.commission_value ?? 20}
+                        autoComplete="commission_value"
+                        className="flex-1 block w-full min-w-0 p-3 rounded-xl focus:outline-none sm:text-md border-2 border-r-0 rounded-tl-none rounded-bl-none border-gray-300"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {showAdvancedOptions && (
+                  <>
+                    <div className="sm:col-span-12">
+                      <label htmlFor="cookie_window" className="block text-sm font-medium text-gray-700">
+                        Cookie window
                       </label>
                       <div className="mt-1 flex rounded-md shadow-sm items-center justify-between">
                         <input
                           minLength="1"
                           maxLength="100"
                           required
-                          placeholder="20"
                           type="number"
-                          name="commission_value"
-                          id="commission_value"
-                          defaultValue={edit?.commission_value ?? 20}
-                          autoComplete="commission_value"
+                          name="cookie_window"
+                          id="cookie_window"
+                          defaultValue={edit?.cookie_window ?? 60}
                           className="flex-1 block w-full min-w-0 p-3 rounded-xl focus:outline-none sm:text-md border-2 border-r-0 rounded-tr-none rounded-br-none border-gray-300"
                         />
                         <span className="min-w-0 p-3 rounded-xl focus:outline-none sm:text-md border-2 rounded-tl-none bg-gray-200 rounded-bl-none border-gray-300">
-                          %
+                          days
                         </span>
                       </div>
                     </div>
-                  )}
 
-                  {rewardType === 'fixed' && (
                     <div className="sm:col-span-12">
-                      <label htmlFor="commission_value" className="block text-sm font-medium text-gray-700">
-                        Amount
+                      <label htmlFor="commission_period" className="block text-sm font-medium text-gray-700">
+                        Commission period
                       </label>
                       <div className="mt-1 flex rounded-md shadow-sm items-center justify-between">
-                        <span className="min-w-0 p-3 rounded-xl focus:outline-none sm:text-md border-2 border-r-0 rounded-tr-none bg-gray-200 rounded-br-none border-gray-300">
-                          {activeCompany?.company_currency}
-                        </span>
                         <input
                           minLength="1"
                           maxLength="100"
                           required
-                          placeholder="1"
                           type="number"
-                          name="commission_value"
-                          id="commission_value"
-                          defaultValue={edit?.commission_value ?? 20}
-                          autoComplete="commission_value"
-                          className="flex-1 block w-full min-w-0 p-3 rounded-xl focus:outline-none sm:text-md border-2 border-r-0 rounded-tl-none rounded-bl-none border-gray-300"
+                          name="commission_period"
+                          id="commission_period"
+                          defaultValue={edit?.commission_period ?? 30}
+                          className="flex-1 block w-full min-w-0 p-3 rounded-xl focus:outline-none sm:text-md border-2 border-r-0 rounded-tr-none rounded-br-none border-gray-300"
                         />
+                        <span className="min-w-0 p-3 rounded-xl focus:outline-none sm:text-md border-2 rounded-tl-none bg-gray-200 rounded-bl-none border-gray-300">
+                          days
+                        </span>
                       </div>
                     </div>
-                  )}
+                  </>
+                )}
 
-                  {showAdvancedOptions && (
-                    <>
-                      <div className="sm:col-span-12">
-                        <label htmlFor="cookie_window" className="block text-sm font-medium text-gray-700">
-                          Cookie window
-                        </label>
-                        <div className="mt-1 flex rounded-md shadow-sm items-center justify-between">
-                          <input
-                            minLength="1"
-                            maxLength="100"
-                            required
-                            type="number"
-                            name="cookie_window"
-                            id="cookie_window"
-                            defaultValue={edit?.cookie_window ?? 60}
-                            className="flex-1 block w-full min-w-0 p-3 rounded-xl focus:outline-none sm:text-md border-2 border-r-0 rounded-tr-none rounded-br-none border-gray-300"
-                          />
-                          <span className="min-w-0 p-3 rounded-xl focus:outline-none sm:text-md border-2 rounded-tl-none bg-gray-200 rounded-bl-none border-gray-300">
-                            days
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="sm:col-span-12">
-                        <label htmlFor="commission_period" className="block text-sm font-medium text-gray-700">
-                          Commission period
-                        </label>
-                        <div className="mt-1 flex rounded-md shadow-sm items-center justify-between">
-                          <input
-                            minLength="1"
-                            maxLength="100"
-                            required
-                            type="number"
-                            name="commission_period"
-                            id="commission_period"
-                            defaultValue={edit?.commission_period ?? 30}
-                            className="flex-1 block w-full min-w-0 p-3 rounded-xl focus:outline-none sm:text-md border-2 border-r-0 rounded-tr-none rounded-br-none border-gray-300"
-                          />
-                          <span className="min-w-0 p-3 rounded-xl focus:outline-none sm:text-md border-2 rounded-tl-none bg-gray-200 rounded-bl-none border-gray-300">
-                            days
-                          </span>
-                        </div>
-                      </div>
-                    </>
-                  )}
-
-                  <div className="sm:col-span-12">
-                    <div className="flex items-center">
-                      <input
-                        id="default_campaign"
-                        name="default_campaign"
-                        type="checkbox"
-                        className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
-                        defaultChecked={edit?.default_campaign ?? true}
-                      />
-                      <label htmlFor="default_campaign" className="ml-3 block text-sm font-medium text-gray-700">
-                        Set as default campaign
-                      </label>
-                    </div>
+                <div className="sm:col-span-12">
+                  <div className="flex items-center">
+                    <input
+                      id="default_campaign"
+                      name="default_campaign"
+                      type="checkbox"
+                      className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                      defaultChecked={edit?.default_campaign ?? true}
+                    />
+                    <label htmlFor="default_campaign" className="ml-3 block text-sm font-medium text-gray-700">
+                      Set as default campaign
+                    </label>
                   </div>
                 </div>
               </div>
             </div>
-            <div className="pt-6">
-              <div className="flex justify-end">
-                <Button type="submit" className="inline-flex">
-                  {loading ? <LoadingDots /> : 'Save'}
-                </Button>
-              </div>
+          </div>
+          <div className="pt-6">
+            <div className="flex justify-end">
+              <Button type="submit" className="inline-flex">
+                {loading ? <LoadingDots /> : 'Save'}
+              </Button>
             </div>
           </div>
-        </form>
-      ) : (
-        <div>Loading...</div>
-      )}
-    </div>
-  );
+        </div>
+      </form>
+    ) : (
+      <div>Loading...</div>
+    )}
+  </div>
+);
 };
