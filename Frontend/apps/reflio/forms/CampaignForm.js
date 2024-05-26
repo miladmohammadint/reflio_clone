@@ -18,11 +18,11 @@ export const CampaignForm = ({ edit, setupMode, companyId }) => {
 
   useEffect(() => {
     if (!activeCompany) {
-      fetchCompanyDetails() // Fetch activeCompany details when component mounts
-        .then(() => setLoading(false)) // Once data is fetched, set loading to false
+      fetchCompanyDetails()
+        .then(() => setLoading(false))
         .catch((error) => {
           console.error('Error fetching activeCompany:', error);
-          setLoading(false); // Set loading to false in case of error
+          setLoading(false);
           toast.error('Failed to fetch activeCompany details.');
         });
     }
@@ -61,7 +61,7 @@ export const CampaignForm = ({ edit, setupMode, companyId }) => {
     try {
       const result = edit
         ? await editCampaign(userDetails, edit.campaign_id, campaignData)
-        : await newCampaign(userDetails, campaignData, companyId);
+        : await newCampaign(userDetails, campaignData, companyId); // Use newCampaign function with userDetails and companyId
 
       if (result === "success") {
         const redirectUrl = setupMode

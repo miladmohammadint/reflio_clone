@@ -32,6 +32,32 @@ export const handleActiveCompany = async (companyId) => {
   }
 };
 
+export const newCampaign = async (userDetails, data, companyId) => {
+  const token = userDetails?.token;
+  const apiUrl = `${backendBaseUrl}/api/campaigns/create/`;
+
+  try {
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ ...data, companyId }), // Include companyId in the request body
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Error creating campaign');
+    }
+
+    return 'success';
+  } catch (error) {
+    console.error('Error creating campaign:', error);
+    throw new Error('Failed to create campaign');
+  }
+};
+
 export const UserContextProvider = (props) => {
   const router = useRouter();
   const [userLoaded, setUserLoaded] = useState(false);
@@ -96,32 +122,6 @@ export const UserContextProvider = (props) => {
     } catch (error) {
       console.error('Error creating company:', error);
       throw new Error('Failed to create company');
-    }
-  };
-
-  const newCampaign = async (userDetails, data, companyId) => {
-    const token = userDetails?.token;
-    const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/company/${companyId}/campaigns`;
-
-    try {
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify(data),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Error creating campaign');
-      }
-
-      return 'success';
-    } catch (error) {
-      console.error('Error creating campaign:', error);
-      return 'error';
     }
   };
 
