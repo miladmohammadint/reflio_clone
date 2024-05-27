@@ -35,34 +35,34 @@ export const CampaignForm = ({ edit, setupMode, companyId }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     if (loading) {
       return false;
     }
-
+  
     const formData = new FormData(e.target);
     const data = {};
-
+  
     for (let entry of formData.entries()) {
       data[entry[0]] = entry[1];
     }
-
+  
     data.default_campaign = data.default_campaign === "on";
-
+  
     setLoading(true);
-
+  
     const campaignData = {
       ...data,
       company: activeCompany.company_id,
-      user: userDetails.id,
+      user: userDetails.id, // Include user ID in the campaignData object
       team: userDetails.team_id,
     };
-
+  
     try {
       const result = edit
         ? await editCampaign(userDetails, edit.campaign_id, campaignData)
-        : await newCampaign(userDetails, campaignData, companyId); // Use newCampaign function with userDetails and companyId
-
+        : await newCampaign(userDetails, campaignData, companyId);
+  
       if (result === "success") {
         const redirectUrl = setupMode
           ? `/dashboard/${companyId}/setup/add`

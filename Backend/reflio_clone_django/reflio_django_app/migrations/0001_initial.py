@@ -4,6 +4,8 @@ from django.conf import settings
 from django.db import migrations, models
 import django.db.models.deletion
 import reflio_django_app.models
+import uuid
+
 
 
 class Migration(migrations.Migration):
@@ -23,7 +25,7 @@ class Migration(migrations.Migration):
                 ('affiliate_id', models.TextField(default='generate_uid(20)', primary_key=True, serialize=False, unique=True)),
                 ('invite_email', models.TextField(null=True)),
                 ('invited_user_id', models.UUIDField(default=None, null=True)),
-                ('campaign_id', models.TextField(null=True)),
+                ('campaign_id', models.UUIDField(null=True)),
                 ('company_id', models.TextField(null=True)),
                 ('accepted', models.BooleanField(default=False)),
                 ('created', models.DateTimeField(auto_now_add=True)),
@@ -38,7 +40,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Campaign',
             fields=[
-                ('campaign_id', models.CharField(default=reflio_django_app.models.generate_uid, max_length=15, primary_key=True, serialize=False, unique=True)),
+                ('campaign_id', models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)),
                 ('campaign_name', models.CharField(max_length=255)),
                 ('commission_type', models.CharField(choices=[('percentage', 'Percentage'), ('fixed', 'Fixed')], max_length=20)),
                 ('commission_value', models.IntegerField()),
@@ -104,7 +106,7 @@ class Migration(migrations.Migration):
                 ('team_id', models.TextField()),
                 ('referral_id', models.TextField(default='generate_uid(20)', primary_key=True, serialize=False, unique=True)),
                 ('affiliate_code', models.TextField(null=True)),
-                ('campaign_id', models.TextField(null=True)),
+                ('campaign_id', models.UUIDField(null=True)),
                 ('company_id', models.TextField(null=True)),
                 ('referral_reference_email', models.TextField(null=True)),
                 ('commission_type', models.TextField(null=True)),
@@ -202,7 +204,7 @@ class Migration(migrations.Migration):
                 ('commission_description', models.TextField(blank=True, null=True)),
                 ('created', models.DateTimeField(auto_now_add=True)),
                 ('affiliate', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='reflio_django_app.affiliate')),
-                ('campaign', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='reflio_django_app.campaign')),
+                ('campaign', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='reflio_django_app.Campaign', null=True)),
                 ('company', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='reflio_django_app.company')),
                 ('referral', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='reflio_django_app.referral')),
             ],

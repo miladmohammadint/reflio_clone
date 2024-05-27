@@ -32,18 +32,28 @@ export const handleActiveCompany = async (companyId) => {
   }
 };
 
-export const newCampaign = async (userDetails, data, companyId) => {
-  const token = userDetails?.token;
-  const apiUrl = `${backendBaseUrl}/api/campaigns/create/`;
+export const newCampaign = async (userDetails, data) => {
+  console.log('userDetails in newCampaign:', userDetails); // Log userDetails
+  const { token, user_id: userId } = userDetails;
+
+  console.log('userId in newCampaign:', userId); // Log userId
 
   try {
+    // Fetch team details to get the team ID
+    const teamDetails = await getTeam();
+    const teamId = teamDetails.team_id;
+
+    console.log('teamId in newCampaign:', teamId); // Log teamId
+
+    const apiUrl = `${backendBaseUrl}/api/campaigns/create/`;
+
     const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ ...data, companyId }), // Include companyId in the request body
+      body: JSON.stringify({ ...data, user: userId, team: teamId }), // Include userId and teamId in the request body
     });
 
     if (!response.ok) {
@@ -74,27 +84,30 @@ export const UserContextProvider = (props) => {
     const fetchUserData = async () => {
       try {
         const userDetails = await getUserDetails();
+        console.log("User Details:", userDetails);
+        
+        // Extract userId from userDetails and pass it to newCampaign
+        const userId = userDetails.user_id;
+        console.log("Extracted userId:", userId); 
+        console.log('Type of userId:', typeof userId);
+        const companies = await getCompanies(userId);
+    
         setUser(userDetails);
         setUserDetails(userDetails);
-
-        const teamDetails = await getTeam();
-        setTeam(teamDetails);
-
-        const subscriptionDetails = await getSubscription();
-        setSubscription(subscriptionDetails);
-
-        const companies = await getCompanies(userDetails.id);
+        setTeam(await getTeam());
+        setSubscription(await getSubscription());
         setUserCompanyDetails(companies);
         if (companies.length > 0) {
           setActiveCompany(companies[0]);
         }
-
+    
         setUserLoaded(true);
+        console.log("User loaded with userId:", userId); // Log the userId after setting userLoaded
       } catch (error) {
         console.error('Error fetching user data:', error);
       }
     };
-
+  
     fetchUserData();
   }, []);
 

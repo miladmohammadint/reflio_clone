@@ -16,7 +16,7 @@ class Team(models.Model):
     created = models.DateTimeField(auto_now_add=True)
 
 class Member(models.Model):
-    member_id = models.CharField(max_length=15, primary_key=True, unique=True, default=generate_uid)
+    member_id = models.UUIDField(default=uuid.uuid4, editable=False)
     member_team = models.ForeignKey(Team, on_delete=models.CASCADE)
     member_user = models.ForeignKey(User, on_delete=models.CASCADE)
     created = models.DateTimeField(auto_now_add=True)
@@ -64,9 +64,9 @@ class Company(models.Model):
         ]
 
 class Campaign(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     team = models.ForeignKey(Team, on_delete=models.CASCADE)
-    campaign_id = models.CharField(max_length=15, primary_key=True, unique=True, default=generate_uid)
+    campaign_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     campaign_name = models.CharField(max_length=255)
     commission_type = models.CharField(max_length=20, choices=[('percentage', 'Percentage'), ('fixed', 'Fixed')])
     commission_value = models.IntegerField()
@@ -81,15 +81,14 @@ class Campaign(models.Model):
     discount_type = models.CharField(max_length=20, choices=[('percentage', 'Percentage'), ('fixed', 'Fixed')], null=True, blank=True)
     custom_campaign_data = models.JSONField(null=True, blank=True)
     created = models.DateTimeField(auto_now_add=True)
-    company = models.ForeignKey(Company, on_delete=models.CASCADE)
 
 class Affiliate(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    team_id = models.TextField()
-    affiliate_id = models.TextField(primary_key=True, unique=True, default='generate_uid(20)')
+    team = models.ForeignKey(Team, on_delete=models.CASCADE)
+    affiliate_id = models.UUIDField(default=uuid.uuid4, editable=False)
     invite_email = models.TextField(null=True)
     invited_user_id = models.UUIDField(null=True, default=None)
-    campaign_id = models.TextField(null=True)
+    campaign_id = models.UUIDField(null=True)
     company_id = models.TextField(null=True)
     accepted = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True)
@@ -102,7 +101,7 @@ class Referral(models.Model):
     referral_id = models.TextField(primary_key=True, unique=True, default='generate_uid(20)')
     affiliate_id = models.ForeignKey(Affiliate, on_delete=models.CASCADE)
     affiliate_code = models.TextField(null=True)
-    campaign_id = models.TextField(null=True)
+    campaign_id = models.UUIDField(null=True)
     company_id = models.TextField(null=True)
     referral_reference_email = models.TextField(null=True)
     commission_type = models.TextField(null=True)
@@ -117,7 +116,7 @@ class Referral(models.Model):
 class Commission(models.Model):
     commission_id = models.CharField(max_length=20, primary_key=True, unique=True, default=generate_uid)
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
-    campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE)
+    campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE, null=True)
     affiliate = models.ForeignKey('Affiliate', on_delete=models.CASCADE)
     referral = models.ForeignKey('Referral', on_delete=models.CASCADE)
     payment_intent_id = models.CharField(max_length=255)

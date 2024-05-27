@@ -237,7 +237,7 @@ def create_campaign(request):
             data = json.loads(request.body)
 
             user_id = data.get('user')
-            team_id = data.get('team')
+            team_id = data.get('team')  # Ensure team_id is passed correctly
             campaign_name = data.get('campaign_name')
             commission_type = data.get('commission_type')
             commission_value = data.get('commission_value')
@@ -253,7 +253,7 @@ def create_campaign(request):
             custom_campaign_data = data.get('custom_campaign_data', {})
 
             user = User.objects.get(id=user_id)
-            team = Team.objects.get(team_id=team_id)
+            team = Team.objects.get(team_id=team_id)  # Ensure team_id is passed correctly as a UUID
             company = Company.objects.get(company_id=company_id)
 
             campaign = Campaign.objects.create(
