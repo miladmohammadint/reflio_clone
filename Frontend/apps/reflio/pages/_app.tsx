@@ -7,20 +7,12 @@ import '@tremor/react/dist/esm/tremor.css';
 import Layout from '@/templates/Layout';
 import { useRouter } from 'next/router';
 import SEOMeta from '@/templates/SEOMeta'; 
+import { UserContextProvider } from '@/utils/useUser';
+import { CompanyContextProvider } from '@/utils/CompanyContext';
+import { CampaignContextProvider } from '@/utils/CampaignContext';
+import { AffiliateContextProvider } from '@/utils/AffiliateContext';
 
-export default function MyApp({ Component, pageProps: { ...pageProps }, }: AppProps<{}>) {
-  const UserContextProvider = dynamic(() =>
-    import("@/utils/useUser").then((module) => module.UserContextProvider)
-  );
-  const CompanyContextProvider = dynamic(() =>
-    import("@/utils/CompanyContext").then((module) => module.CompanyContextProvider)
-  );
-  const CampaignContextProvider = dynamic(() =>
-    import("@/utils/CampaignContext").then((module) => module.CampaignContextProvider)
-  );
-  const AffiliateContextProvider = dynamic(() =>
-    import("@/utils/AffiliateContext").then((module) => module.AffiliateContextProvider)
-  );
+export default function MyApp({ Component, pageProps }: AppProps<{}>) {
   const router = useRouter();
   
   useEffect(() => {
@@ -69,4 +61,4 @@ export default function MyApp({ Component, pageProps: { ...pageProps }, }: AppPr
       </div>
     </>
   );
-};
+}

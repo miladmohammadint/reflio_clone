@@ -175,3 +175,38 @@ export const useUser = () => {
   }
   return context;
 };
+
+export const getSales = async (companyId, date, page) => {
+  try {
+    const response = await fetch(backendBaseUrl + `/api/get_sales?company_id=${companyId}&date=${date}&page=${page}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch sales data');
+    }
+    const salesData = await response.json();
+    return salesData;
+  } catch (error) {
+    console.error('Error fetching sales data:', error);
+    return { error: 'Failed to fetch sales data' };
+  }
+};
+
+export const continueWithoutStripe = async (companyId) => {
+  try {
+    const response = await fetch(backendBaseUrl + `/api/continue_without_stripe`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ company_id: companyId }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to update company stripe information');
+    }
+
+    return 'success';
+  } catch (error) {
+    console.error('Error updating company stripe information:', error);
+    return 'error';
+  }
+};

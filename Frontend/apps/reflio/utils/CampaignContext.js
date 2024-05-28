@@ -1,53 +1,52 @@
-import { useRouter } from 'next/router';
 import { useState, useEffect, createContext, useContext } from 'react';
 import { getCampaigns, useUser } from './useUser';
 import { useCompany } from './CompanyContext';
+import { useRouter } from 'next/router';
 
 export const CampaignContext = createContext();
 
 export const CampaignContextProvider = (props) => {
-  const { user, userFinderLoaded } = useUser();
+  const { userFinderLoaded } = useUser();
   const { activeCompany } = useCompany();
-  const [userCampaignDetails, setUserCampaignDetails] = useState(null);
-  const [activeCampaign, setActiveCampaign] = useState('none');
+  const [userCampaignDetails, setUserCampaignDetails] = useState([]);
+  const [activeCampaign, setActiveCampaign] = useState(null);
   const router = useRouter();
-  let value;
-  
-  useEffect(() => {
-    if (userFinderLoaded && getCampaigns && user && userCampaignDetails === null && activeCompany?.company_id) {
-      getCampaigns(activeCompany?.company_id).then(results => {
-        setUserCampaignDetails(Array.isArray(results) ? results : [results])
 
-        let newActiveCampaign = null;
-
-        if(router?.query?.campaignId && results?.filter(campaign => campaign?.campaign_id === router?.query?.campaignId)?.length && activeCampaign === 'none' && results){
-          newActiveCampaign = results?.filter(campaign => campaign?.campaign_id === router?.query?.campaignId);
-          if( Array.isArray(newActiveCampaign) && newActiveCampaign !== null){
-            newActiveCampaign = newActiveCampaign[0];
-          }
-        }            
-
-        if(newActiveCampaign !== null){
-          setActiveCampaign(newActiveCampaign);
-        } else {
-          setActiveCampaign(null);
-        }
-      });
+  const fetchCampaignDetails = async (companyId) => {
+    try {
+      const results = await getCampaigns(companyId);
+      const campaigns = Array.isArray(results) ? results : [results];
+      console.log('Fetched campaigns:', campaigns);
+      setUserCampaignDetails(campaigns);
+    } catch (error) {
+      console.error('Error fetching campaigns:', error);
     }
-  });
-    
-  value = {
-    activeCampaign,
-    userCampaignDetails
   };
 
-  return <CampaignContext.Provider value={value} {...props}  />;
-}
+  useEffect(() => {
+    if (userFinderLoaded && activeCompany?.company_id) {
+      fetchCampaignDetails(activeCompany.company_id);
+    }
+  }, [userFinderLoaded, activeCompany]);
+
+  useEffect(() => {
+    const newActiveCampaign = userCampaignDetails.find(campaign => campaign.campaign_id === router.query.campaignId);
+    setActiveCampaign(newActiveCampaign || null);
+  }, [router.query.campaignId, userCampaignDetails]);
+
+  const value = {
+    activeCampaign,
+    userCampaignDetails,
+    fetchCampaignDetails, // Expose fetchCampaignDetails here
+  };
+
+  return <CampaignContext.Provider value={value} {...props} />;
+};
 
 export const useCampaign = () => {
   const context = useContext(CampaignContext);
   if (context === undefined) {
-    throw new Error(`useUser must be used within a CampaignsContextProvider.`);
+    throw new Error(`useCampaign must be used within a CampaignContextProvider.`);
   }
   return context;
 };

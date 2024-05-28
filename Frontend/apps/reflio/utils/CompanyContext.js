@@ -6,18 +6,20 @@ export const CompanyContext = createContext();
 
 export const CompanyContextProvider = (props) => {
   const { user, team, userFinderLoaded, signOut } = useUser();
-  const [userCompanyDetails, setUserCompanyDetails] = useState(null);
+  const [userCompanyDetails, setUserCompanyDetails] = useState([]);
   const [creatingTeam, setCreatingTeam] = useState(false);
   const router = useRouter();
-  let value;
+  const [activeCompany, setActiveCompany] = useState(null);
 
   const fetchCompanyDetails = async () => {
     if (user) {
       try {
-        const results = await getCompanies(user?.id);
+        const results = await getCompanies(user.id);
         const companies = Array.isArray(results) ? results : [results];
         console.log('Fetched Company Details:', companies);  // Log fetched company details
         setUserCompanyDetails(companies);
+        // Determine the active company here after fetching
+        determineActiveCompany(companies);
         return companies;
       } catch (error) {
         console.error("Error fetching company details:", error);
@@ -27,14 +29,32 @@ export const CompanyContextProvider = (props) => {
     return [];
   };
 
-  useEffect(() => {
-    if (userCompanyDetails === null) {
-      fetchCompanyDetails();
+  const determineActiveCompany = (companies) => {
+    if (companies.length > 0) {
+      const activeCompany = router.query.companyId
+        ? companies.find(company => company.company_id === router.query.companyId)
+        : companies.find(company => company.active_company === true) || companies[0];
+      setActiveCompany(activeCompany);
+      console.log('Determined Active Company:', activeCompany);  // Log active company
+    } else {
+      setActiveCompany(null);
     }
-  }, [userCompanyDetails]);
+  };
 
   useEffect(() => {
-    if (userCompanyDetails !== null && userCompanyDetails.length === 0 && !router.asPath.includes('add-company') && router.pathname !== '/dashboard/create-team') {
+    if (userCompanyDetails.length === 0) {
+      fetchCompanyDetails();
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (userCompanyDetails.length > 0) {
+      determineActiveCompany(userCompanyDetails);
+    }
+  }, [userCompanyDetails, router.query.companyId]);
+
+  useEffect(() => {
+    if (userCompanyDetails.length === 0 && !router.asPath.includes('add-company') && router.pathname !== '/dashboard/create-team') {
       if (team === 'none' && router.pathname !== '/dashboard/create-team' && creatingTeam === false) {
         setCreatingTeam(true);
         newTeam(user, { "team_name": "My team" }).then((result) => {
@@ -47,23 +67,13 @@ export const CompanyContextProvider = (props) => {
       }
     }
 
-    if (userCompanyDetails !== null && userCompanyDetails.length > 0 && router.asPath === '/dashboard') {
-      const activeCompany = userCompanyDetails.filter(company => company.active_company === true);
-      if (activeCompany.length > 0) {
-        router.replace('/dashboard/' + activeCompany[0].company_id);
-      } else {
-        router.replace('/dashboard/' + userCompanyDetails[0].company_id);
-      }
+    if (userCompanyDetails.length > 0 && router.asPath === '/dashboard') {
+      const activeCompany = userCompanyDetails.find(company => company.active_company === true) || userCompanyDetails[0];
+      router.replace('/dashboard/' + activeCompany.company_id);
     }
   }, [userCompanyDetails, team, router, creatingTeam]);
 
-  let activeCompany = router.query?.companyId ?
-    userCompanyDetails?.find(company => company?.company_id === router.query?.companyId) :
-    userCompanyDetails?.find(company => company?.active_company === true) || userCompanyDetails?.[0];
-
-  console.log('Active Company:', activeCompany);  // Log active company
-
-  value = {
+  const value = {
     activeCompany,
     userCompanyDetails,
     fetchCompanyDetails,

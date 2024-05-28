@@ -17,7 +17,7 @@ from .models import UserDetails  # Import UserDetails model
 from django.middleware import csrf
 import uuid
 from django.views.generic import View
-
+from .models import Commission
 
 
 logger = logging.getLogger(__name__) 
@@ -323,5 +323,54 @@ def campaign_details(request):
             return JsonResponse(campaign_data)
         except Campaign.DoesNotExist:
             return JsonResponse({'error': 'Campaign not found'}, status=404)
+    else:
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+@csrf_exempt
+@api_view(['GET'])
+def get_sales(request):
+    """
+    API endpoint to fetch sales data based on filters.
+    """
+    if request.method == 'GET':
+        company_id = request.GET.get('company_id')
+        date = request.GET.get('date')
+        page = request.GET.get('page')
+
+        # Construct query based on filters
+        query = Q(company_id=company_id)
+
+        if date and page == 'due':
+            query &= Q(commission_due_date__lt=date, paid_at__isnull=True)
+        elif page == 'paid':
+            query &= ~Q(paid_at=None)
+        elif page == 'pending':
+            query &= Q(commission_due_date__gt=date, paid_at__isnull=True)
+        elif page == 'trial':
+            query &= Q(commission_description='Trial')
+
+        # Execute query and fetch data
+        sales_data = Commission.objects.filter(query).values()
+        return JsonResponse(list(sales_data), safe=False)
+    else:
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+@csrf_exempt    
+@api_view(['POST'])
+def continue_without_stripe(request):
+    """
+    API endpoint to continue without using Stripe for a specific company.
+    """
+    if request.method == 'POST':
+        company_id = request.data.get('company_id')
+
+        try:
+            company = Company.objects.get(company_id=company_id)
+            company.stripe_id = 'manual'
+            company.stripe_account_data = 'manual'
+            company.save()
+            return JsonResponse({'success': True})
+        except Company.DoesNotExist:
+            return JsonResponse({'error': 'Company not found'}, status=404)
     else:
         return JsonResponse({'error': 'Method not allowed'}, status=405)
