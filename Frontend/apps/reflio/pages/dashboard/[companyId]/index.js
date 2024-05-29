@@ -7,18 +7,21 @@ export default function InnerDashboardPage() {
   const router = useRouter();
   const { activeCompany } = useCompany();
 
-  if(activeCompany?.stripe_account_data === null || activeCompany?.stripe_id === null){
-    router.replace(`/dashboard/${router?.query?.companyId}/setup`);
-  } else {
-    router.replace(`/dashboard/${router?.query?.companyId}/analytics`);
+  // Check if activeCompany exists and both stripe_account_data and stripe_id are not null
+  const isReadyToShowDashboard = activeCompany && activeCompany.stripe_account_data !== null && activeCompany.stripe_id !== null;
+
+  // If the activeCompany is not fully set up, show the loading tile without redirecting
+  if (!isReadyToShowDashboard) {
+    return (
+      <>
+        <SEOMeta title="Dashboard"/>
+        <div className="pt-12 wrapper">
+          <LoadingTile/>
+        </div>
+      </>
+    );
   }
   
-  return (
-    <>
-      <SEOMeta title="Dashboard"/>
-      <div className="pt-12 wrapper">
-        <LoadingTile/>
-      </div>
-    </>
-  );
+  // If the activeCompany is fully set up, return null to render nothing
+  return null;
 }
