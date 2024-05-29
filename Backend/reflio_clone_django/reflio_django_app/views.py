@@ -18,7 +18,15 @@ from django.middleware import csrf
 import uuid
 from django.views.generic import View
 from .models import Commission
-
+from .models import Affiliate
+from .models import Referral
+from django.db.models import Q
+from datetime import datetime
+from django.core.exceptions import ObjectDoesNotExist
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.utils.http import urlsafe_base64_decode
+from django.contrib.auth.models import User
+from django.contrib.auth.hashers import make_password
 
 logger = logging.getLogger(__name__) 
 
@@ -305,6 +313,7 @@ def create_campaign(request):
     else:
         return JsonResponse({'error': 'Method not allowed'}, status=405)
 
+@csrf_exempt
 def campaign_details(request):
     if request.method == 'POST':
         # Assuming you have a Campaign model in your Django app
@@ -373,4 +382,416 @@ def continue_without_stripe(request):
         except Company.DoesNotExist:
             return JsonResponse({'error': 'Company not found'}, status=404)
     else:
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    
+@csrf_exempt
+@api_view(['GET'])
+def get_affiliates(request):
+    company_id = request.query_params.get('company_id')
+    
+    if not company_id:
+        return Response({'error': 'Company ID is required'}, status=400)
+    
+    try:
+        company = Company.objects.get(company_id=company_id)
+    except Company.DoesNotExist:
+        return Response({'error': 'Company not found'}, status=404)
+
+    affiliates = Affiliate.objects.filter(company=company).select_related('invited_user_id')
+
+    affiliates_data = []
+    for affiliate in affiliates:
+        commissions = Commission.objects.filter(affiliate=affiliate, commission_due_date__lt=datetime.now())
+        commission_value = sum([c.commission_sale_value for c in commissions])
+        
+        affiliate_data = {
+            'affiliate_id': affiliate.affiliate_id,
+            'invited_user_email': affiliate.invited_user_id.email if affiliate.invited_user_id else None,
+            'commissions_value': commission_value,
+            # Add other fields if needed
+        }
+        affiliates_data.append(affiliate_data)
+    
+    return Response(affiliates_data, status=200)
+
+@csrf_exempt
+@api_view(['GET'])
+def get_referrals(request):
+    company_id = request.query_params.get('company_id')
+    date = request.query_params.get('date')
+    page = request.query_params.get('page')
+
+    if not company_id:
+        return Response({'error': 'Company ID is required'}, status=400)
+
+    query = Q(company_id=company_id)
+    
+    if date:
+        query &= Q(created__lt=date)
+
+    if page == "visited-link":
+        query &= Q(referral_converted=False, referral_reference_email__isnull=True, referral_expiry__gt=datetime.now())
+    elif page == "expired":
+        query &= Q(referral_expiry__lt=datetime.now(), referral_reference_email__isnull=True, referral_converted=False)
+    elif page == "signed-up":
+        query &= Q(referral_reference_email__isnull=False, referral_converted=False)
+    elif page == "converted":
+        query &= Q(referral_converted=True)
+
+    referrals = Referral.objects.filter(query).select_related('campaign', 'affiliate').order_by('-created')[:30]
+    
+    referral_data = []
+    for referral in referrals:
+        referral_data.append({
+            'id': referral.id,
+            'created': referral.created,
+            'referral_converted': referral.referral_converted,
+            'referral_reference_email': referral.referral_reference_email,
+            'campaign': {
+                'campaign_id': referral.campaign.campaign_id,
+                'campaign_name': referral.campaign.campaign_name,
+            },
+            'affiliate': {
+                'affiliate_id': referral.affiliate.affiliate_id,
+                'vercel_username': referral.affiliate.vercel_username,
+                'name': referral.affiliate.name,
+            }
+        })
+
+    return Response({'data': referral_data, 'count': referrals.count()})
+
+@csrf_exempt
+@api_view(['GET'])
+def get_reflio_commissions_due(request):
+    team_id = request.query_params.get('team_id')
+    
+    if not team_id:
+        return JsonResponse({'error': 'Team ID is required'}, status=400)
+    
+    try:
+        commissions = Commission.objects.filter(
+            team_id=team_id,
+            reflio_commission_paid=False,
+            commission_due_date__lt=datetime.now(),
+            paid_at__isnull=True
+        ).select_related('campaign', 'affiliate__invited_user_id').order_by('-created')
+        
+        data = []
+        for commission in commissions:
+            data.append({
+                'id': commission.id,
+                'commission_value': commission.commission_value,
+                'commission_due_date': commission.commission_due_date,
+                'campaign': {
+                    'id': commission.campaign.id,
+                    'campaign_name': commission.campaign.campaign_name,
+                },
+                'affiliate': {
+                    'id': commission.affiliate.id,
+                    'email': commission.affiliate.invited_user_id.email,
+                    'paypal_email': commission.affiliate.invited_user_id.paypal_email,
+                }
+            })
+        
+        return JsonResponse({'data': data}, safe=False)
+    
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+@api_view(['POST'])
+@csrf_exempt
+def pay_commissions(request):
+    data = json.loads(request.body)
+    company_id = data.get('companyId')
+    checked_commissions = data.get('checkedCommissions')
+    eligible_commissions = data.get('eligibleCommissions')
+
+    if not company_id or not eligible_commissions:
+        return Response({"error": "Invalid data"}, status=400)
+
+    try:
+        now = timezone.now().isoformat()
+        if checked_commissions:
+            Commission.objects.filter(commission_id__in=checked_commissions).update(paid_at=now)
+        else:
+            eligible_ids = [item['commission_id'] for item in eligible_commissions]
+            Commission.objects.filter(commission_id__in=eligible_ids).update(paid_at=now)
+
+        return Response({"status": "success"})
+    except Exception as e:
+        return Response({"error": str(e)}, status=500)
+
+@api_view(['POST'])
+@csrf_exempt
+def new_team(request):
+    """
+    API endpoint to create a new team.
+    """
+    if request.method == 'POST':
+        data = request.data
+
+        # Retrieve user ID from the request
+        user_id = data.get('userId')
+
+        try:
+            # Retrieve user object
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            return JsonResponse({'error': 'User not found'}, status=404)
+
+        # Extract team name from the request data
+        team_name = data.get('team_name')
+
+        if not team_name:
+            return JsonResponse({'error': 'Team name is required'}, status=400)
+
+        # Check if the team with the given name already exists for the user
+        if Team.objects.filter(user=user, team_name=team_name).exists():
+            return JsonResponse({'error': 'Team with the same name already exists'}, status=400)
+
+        # Create a new team
+        new_team = Team.objects.create(user=user, team_name=team_name)
+
+        # Return success response
+        return JsonResponse({'message': 'Team created successfully', 'team_id': new_team.id}, status=201)
+
+    else:
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    
+@csrf_exempt
+@api_view(['POST'])
+def edit_campaign(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            campaign_id = data.get('campaign_id')
+            form_fields = data.get('form_fields')
+
+            # Perform your logic here to update the campaign with the provided form fields
+
+            # Example logic:
+            # Campaign.objects.filter(id=campaign_id).update(**form_fields)
+
+            return JsonResponse({'status': 'success'})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)})
+        
+@csrf_exempt
+@api_view(['POST', 'GET'])
+def edit_campaign_meta(request):
+    if request.method == 'POST':
+        # Logging request headers
+        logger.info('Request Headers: %s', request.headers)
+        
+        # Extract campaign meta data from the request
+        campaign_id = request.data.get('campaign_id')
+        meta_data = request.data.get('meta_data')
+        
+        if not campaign_id or not meta_data:
+            return JsonResponse({'status': 'error', 'message': 'Campaign ID and meta data are required'}, status=400)
+        
+        # Your logic to update campaign meta data goes here
+        
+        return JsonResponse({'status': 'success', 'message': 'Campaign meta data updated successfully'})
+
+    # Handle GET request if needed
+    return JsonResponse({'status': 'error', 'message': 'GET request not supported'}, status=405)
+
+@csrf_exempt
+def new_stripe_account(request):
+    if request.method == 'POST':
+        try:
+            # Extract data from the request
+            data = json.loads(request.body)
+            user_id = data.get('userId')
+            stripe_id = data.get('stripeId')
+            company_id = data.get('companyId')
+
+            # Your logic to handle the new Stripe account
+            # Example:
+            # Save the Stripe account details to the company in the database
+
+            return JsonResponse({'status': 'success'})
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    else:
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    
+@csrf_exempt
+def manually_verify_domain(request):
+    if request.method == 'POST':
+        try:
+            # Extract data from the request
+            data = json.loads(request.body)
+            company_id = data.get('companyId')
+
+            # Your logic to manually verify the domain
+            # Example:
+            # Update the company's domain_verified field in the database
+
+            return JsonResponse({'status': 'success'})
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    else:
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    
+@csrf_exempt
+def delete_affiliate(request):
+    if request.method == 'POST':
+        try:
+            # Extract data from the request
+            data = json.loads(request.body)
+            affiliate_id = data.get('id')
+
+            # Your logic to delete the affiliate
+            # Example:
+            # Delete the affiliate from the database
+
+            return JsonResponse({'status': 'success'})
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    else:
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    
+@csrf_exempt
+def delete_company(request):
+    if request.method == 'POST':
+        try:
+            # Extract data from the request
+            data = json.loads(request.body)
+            company_id = data.get('id')
+
+            # Your logic to delete the company
+            # Example:
+            # Delete the company from the database
+
+            return JsonResponse({'status': 'success'})
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    else:
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    
+@csrf_exempt
+def edit_currency(request):
+    if request.method == 'POST':
+        try:
+            # Extract data from the request
+            data = json.loads(request.body)
+            company_id = data.get('companyId')
+            company_currency = data.get('companyCurrency')
+
+            # Your logic to edit the company currency
+            # Example:
+            # Update the company currency in the database
+
+            return JsonResponse({'status': 'success'})
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    else:
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    
+@csrf_exempt
+def edit_company_website(request):
+    if request.method == 'POST':
+        try:
+            # Extract data from the request
+            data = json.loads(request.body)
+            company_id = data.get('companyId')
+            company_url = data.get('companyUrl')
+
+            # Your logic to edit the company website
+            # Example:
+            # Update the company website in the database
+
+            return JsonResponse({'status': 'success'})
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    else:
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    
+@csrf_exempt
+def disable_emails(request):
+    if request.method == 'POST':
+        try:
+            # Extract data from the request
+            data = json.loads(request.body)
+            company_id = data.get('companyId')
+            disable_type = data.get('type')
+
+            # Your logic to disable emails
+            # Example:
+            # Update the disable_emails field in the database
+
+            return JsonResponse({'status': 'success'})
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    else:
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    
+@csrf_exempt
+def archive_submission(request):
+    if request.method == 'POST':
+        try:
+            # Extract data from the request
+            data = json.loads(request.body)
+            submission_id = data.get('id')
+            archive_type = data.get('type')
+
+            # Your logic to archive submission
+            # Example:
+            # Update the archived field in the database
+
+            return JsonResponse({'status': 'success'})
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    else:
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    
+@csrf_exempt
+def upload_logo_image(request):
+    if request.method == 'POST':
+        try:
+            # Extract data from the request
+            data = json.loads(request.body)
+            companyId = data.get('companyId')
+            file = request.FILES.get('file')
+
+            # Your logic to handle file upload and update company logo in the database
+            # Example:
+            # Save the file in your storage and update the company's logo field in the database
+
+            return JsonResponse({'status': 'success'})
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    else:
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    
+@csrf_exempt
+@api_view(['POST', 'GET'])
+def reset_password(request):
+    if request.method == 'POST':
+        try:
+            token = request.data.get('token')
+            password = request.data.get('password')
+
+            # Decode the token to get user_id
+            uidb64, token = token.split("-")
+            uid = force_text(urlsafe_base64_decode(uidb64))
+
+            # Check if the user exists
+            user = User.objects.get(pk=uid)
+
+            # Check if the token is valid
+            if PasswordResetTokenGenerator().check_token(user, token):
+                # Set the new password
+                user.password = make_password(password)
+                user.save()
+                return JsonResponse({'status': 'success', 'message': 'Password reset successfully'})
+            else:
+                return JsonResponse({'status': 'error', 'message': 'Invalid token'})
+        except ObjectDoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'User does not exist'})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)})
+    elif request.method == 'GET':
         return JsonResponse({'error': 'Method not allowed'}, status=405)
