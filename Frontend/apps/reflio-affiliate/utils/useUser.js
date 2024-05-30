@@ -1,7 +1,10 @@
 import { useEffect, useState, createContext, useContext } from 'react';
-import { supabase } from './supabase-client';
+import axios from 'axios';
+import { useRouter } from 'next/router';
 
 export const UserContext = createContext();
+
+const backendBaseUrl = 'https://your-django-backend-url'; // Replace with your actual Django backend URL
 
 export const UserContextProvider = (props) => {
   const [userLoaded, setUserLoaded] = useState(false);
@@ -9,37 +12,106 @@ export const UserContextProvider = (props) => {
   const [user, setUser] = useState(null);
   const [userFinderLoaded, setUserFinderLoaded] = useState(false);
   const [userDetails, setUserDetails] = useState(null);
+  const router = useRouter();
 
   useEffect(() => {
-    const session = supabase.auth.session();
-    setSession(session);
-    setUser(session?.user ?? null);
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+    const checkAuth = async () => {
+      try {
+        const response = await axios.get(`${backendBaseUrl}/api/auth/session/`);
+        const session = response.data;
         setSession(session);
         setUser(session?.user ?? null);
+      } catch (error) {
+        console.error('Error fetching session:', error);
       }
-    );
+    };
+
+    checkAuth();
 
     setUserFinderLoaded(true);
-
-    return () => {
-      authListener.unsubscribe();
-    };
   }, []);
 
-  const getUserDetails = () => supabase.from('users').select('*').eq('id', user?.id).single();
+  const getUserDetails = async () => {
+    try {
+      const response = await axios.get(`${backendBaseUrl}/api/users/${user?.id}/`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching user details:', error);
+      return null;
+    }
+  };
+
   useEffect(() => {
     if (user) {
-      Promise.allSettled([getUserDetails()]).then(
-        (results) => {
-          setUserDetails(results[0].value.data);
-          setUserLoaded(true);
-          setUserFinderLoaded(true);
-        }
-      );
+      Promise.allSettled([getUserDetails()]).then((results) => {
+        setUserDetails(results[0].value);
+        setUserLoaded(true);
+        setUserFinderLoaded(true);
+      });
     }
   }, [user]);
+
+  const signIn = async (options) => {
+    try {
+      const response = await axios.post(`${backendBaseUrl}/api/auth/signin/`, {
+        email: options.email,
+        password: options.password,
+      });
+      const session = response.data;
+      setSession(session);
+      setUser(session.user);
+    } catch (error) {
+      console.error('Error signing in:', error);
+    }
+  };
+
+  const signInWithPassword = async (options) => {
+    try {
+      const response = await axios.post(`${backendBaseUrl}/api/auth/signin/`, {
+        email: options.email,
+        password: options.password,
+      });
+      const session = response.data;
+      setSession(session);
+      setUser(session.user);
+    } catch (error) {
+      console.error('Error signing in with password:', error);
+    }
+  };
+
+  const signUp = async (options) => {
+    try {
+      const response = await axios.post(`${backendBaseUrl}/api/auth/signup/`, {
+        email: options.email,
+        password: options.password,
+      });
+      const session = response.data;
+      setSession(session);
+      setUser(session.user);
+    } catch (error) {
+      console.error('Error signing up:', error);
+    }
+  };
+
+  const forgotPassword = async (email) => {
+    try {
+      await axios.post(`${backendBaseUrl}/api/auth/forgot_password/`, { email });
+    } catch (error) {
+      console.error('Error sending forgot password email:', error);
+    }
+  };
+
+  const signOut = async () => {
+    try {
+      await axios.post(`${backendBaseUrl}/api/auth/signout/`);
+      setUserDetails(null);
+      setSession(null);
+      setUser(null);
+      router.push('/');
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
 
   const value = {
     session,
@@ -47,15 +119,13 @@ export const UserContextProvider = (props) => {
     userDetails,
     userLoaded,
     userFinderLoaded,
-    signIn: (options) => supabase.auth.signIn({email: options.email}, {shouldCreateUser: options.shouldCreateUser, redirectTo: options.redirectTo}),
-    signInWithPassword: (options) => supabase.auth.signIn({email: options.email, password: options.password}, {shouldCreateUser: options.shouldCreateUser, redirectTo: options.redirectTo}),
-    signUp: (options) => supabase.auth.signUp({email: options.email, password: options.password}, {redirectTo: options.redirectTo}),
-    forgotPassword: (email) => supabase.auth.api.resetPasswordForEmail(email),
-    signOut: () => {
-      setUserDetails(null);
-      return supabase.auth.signOut();
-    }
+    signIn,
+    signInWithPassword,
+    signUp,
+    forgotPassword,
+    signOut,
   };
+
   return <UserContext.Provider value={value} {...props} />;
 };
 
@@ -68,29 +138,29 @@ export const useUser = () => {
   return context;
 };
 
-//Reset Password
+// Reset Password
 export const resetPassword = async (token, password) => {
-  const { error, data } = await supabase.auth.api
-    .updateUser(token, { password : password })
-
-  if(error){
-    return error;
-  } else {
-    return data
+  try {
+    const response = await axios.post(`${backendBaseUrl}/api/auth/reset_password/`, {
+      token,
+      password,
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error resetting password:', error);
+    return "error";
   }
 };
 
+// Update PayPal Email
 export const paypalEmail = async (id, email) => {
-  const { data, error } = await supabase
-    .from('users')
-    .update({ 
+  try {
+    const response = await axios.put(`${backendBaseUrl}/api/users/${id}/`, {
       paypal_email: email,
-    })
-    .match({ id: id })
-
-    if (error) {
-      return "error";
-    } else {
-      return "success";
-    }
+    });
+    return response.status === 200 ? "success" : "error";
+  } catch (error) {
+    console.error('Error updating PayPal email:', error);
+    return "error";
+  }
 };
