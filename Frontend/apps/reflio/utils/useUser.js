@@ -192,7 +192,7 @@ export const getSales = async (companyId, date, page) => {
 
 export const continueWithoutStripe = async (companyId) => {
   try {
-    const response = await fetch(backendBaseUrl + `/api/continue_without_stripe`, {
+    const response = await fetch(backendBaseUrl + `/api/continue_without_stripe/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
