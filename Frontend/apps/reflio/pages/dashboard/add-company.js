@@ -4,7 +4,7 @@ import { SEOMeta } from '@/templates/SEOMeta';
 import Button from '@/components/Button';
 import { checkValidUrl, slugifyString } from '@/utils/helpers';
 import toast from 'react-hot-toast';
-import { getCSRFToken, getTeam } from '/Users/miladmohammadi/Documents/GitHub/reflio_clone/frontend/apps/reflio/pages/api/user.tsx'; // Import getTeam from api/user
+import { getCSRFToken, getTeam } from '../api/user.tsx';
 
 const backendBaseUrl = 'http://localhost:8000';
 
