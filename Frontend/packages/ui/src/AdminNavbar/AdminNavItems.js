@@ -133,7 +133,7 @@ export const AdminNavItems = () => {
                       ))}
                       <Link
                         passHref
-                        href="/company/new"
+                        href="/dashboard/add-company"
                         className="relative cursor-default select-none py-2 pl-3 pr-9 text-secondary-600 hover:text-secondary-800 hover:bg-gray-100"
                       >
                         + Add company
