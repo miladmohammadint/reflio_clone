@@ -178,7 +178,7 @@ export const useUser = () => {
 
 export const getSales = async (companyId, date, page) => {
   try {
-    const response = await fetch(backendBaseUrl + `/api/get_sales?company_id=${companyId}&date=${date}&page=${page}`);
+    const response = await fetch(backendBaseUrl + `/api/get_sales/?company_id=${companyId}&date=${date}&page=${page}`);
     if (!response.ok) {
       throw new Error('Failed to fetch sales data');
     }
