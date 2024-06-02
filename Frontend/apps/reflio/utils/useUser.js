@@ -310,6 +310,29 @@ export const newTeam = async (userId, teamName) => {
   }
 };
 
+export const getCampaigns = async (companyId) => {
+  try {
+    console.log("Here");
+    const apiUrl = `${backendBaseUrl}/api/get_campaigns/`;
+    const response = await axios.get(apiUrl, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      params: {companyId: companyId },
+    });
+
+    if (response.status === 200 && response.data.status === "success") {
+      return "success";
+    } else {
+      return "error";
+    }
+  } catch (error) {
+    console.error('Error getting campaigns:', error);
+    return "error";
+  }
+
+};
+
 export const editCampaign = async (user, campaignId, formFields) => {
   try {
     const apiUrl = `${backendBaseUrl}/api/edit_campaign/`;

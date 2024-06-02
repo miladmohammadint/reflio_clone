@@ -1,5 +1,6 @@
 import Cors from 'cors';
 import { withSentry } from '@sentry/nextjs';
+import { backendBaseUrl } from '../user';
 
 // Initializing the cors middleware
 const cors = Cors({
@@ -27,6 +28,7 @@ const campaignDetails = async (req, res) => {
   let body = req.body;
   try {
     body = JSON.parse(body);
+    console.log("Could parse body");
   } catch (error) {
     console.log("Could not parse body")
   }
@@ -35,9 +37,9 @@ const campaignDetails = async (req, res) => {
     if (body?.referralCode && body?.companyId) {
       // Replace this block with code to fetch campaign details from the Django backend
       // Use fetch or any other HTTP client library to make a request to your Django endpoint
-      const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/campaign-details`;
+      const apiUrl = `${backendBaseUrl}/api/campaign-details`;
       const response = await fetch(apiUrl, {
-        method: 'POST',
+        method: 'GET',
         headers: {
           'Content-Type': 'application/json',
         },

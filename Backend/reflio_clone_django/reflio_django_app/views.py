@@ -314,6 +314,29 @@ def create_campaign(request):
         return JsonResponse({'error': 'Method not allowed'}, status=405)
 
 @csrf_exempt
+@api_view(['GET'])
+def get_campaigns(request):
+    if request.method == 'GET':
+        # Assuming you have a Campaign model in your Django app
+        company_id = request.GET.get('companyId')
+
+        try:
+            # Replace Campaign with your actual model name
+            campaign = Campaign.objects.get(company_id=company_id)
+            # Serialize the campaign data as needed
+            campaign_data = {
+                'id': campaign.campaign_id,
+                'name': campaign.campaign_name,
+                # Add other campaign attributes as needed
+            }
+            return JsonResponse(campaign_data)
+        except Campaign.DoesNotExist:
+            return JsonResponse({'error': 'Campaign not found'}, status=404)
+    else:
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+@csrf_exempt
+@api_view(['POST'])
 def campaign_details(request):
     if request.method == 'POST':
         # Assuming you have a Campaign model in your Django app
