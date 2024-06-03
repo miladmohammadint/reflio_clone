@@ -16,7 +16,6 @@ export const CampaignContextProvider = (props) => {
     try {
       const results = await getCampaigns(companyId);
       const campaigns = Array.isArray(results) ? results : [results];
-      console.log('Fetched campaigns:', campaigns);
       setUserCampaignDetails(campaigns);
     } catch (error) {
       console.error('Error fetching campaigns:', error);
@@ -24,20 +23,20 @@ export const CampaignContextProvider = (props) => {
   };
 
   useEffect(() => {
-    if (userFinderLoaded && activeCompany?.company_id) {
+    if (activeCompany?.company_id) {
       fetchCampaignDetails(activeCompany.company_id);
     }
   }, [userFinderLoaded, activeCompany]);
 
   useEffect(() => {
-    const newActiveCampaign = userCampaignDetails.find(campaign => campaign.campaign_id === router.query.campaignId);
+    const newActiveCampaign = userCampaignDetails.find(campaign => campaign.id === router.query.campaignId);
     setActiveCampaign(newActiveCampaign || null);
   }, [router.query.campaignId, userCampaignDetails]);
 
   const value = {
     activeCampaign,
     userCampaignDetails,
-    fetchCampaignDetails, // Expose fetchCampaignDetails here
+    fetchCampaignDetails,
   };
 
   return <CampaignContext.Provider value={value} {...props} />;

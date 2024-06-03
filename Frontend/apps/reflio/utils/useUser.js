@@ -312,25 +312,22 @@ export const newTeam = async (userId, teamName) => {
 
 export const getCampaigns = async (companyId) => {
   try {
-    console.log("Here");
-    const apiUrl = `${backendBaseUrl}/api/get_campaigns/`;
-    const response = await axios.get(apiUrl, {
+    const response = await axios.get(`${backendBaseUrl}/api/get_campaigns/`, {
       headers: {
         'Content-Type': 'application/json',
       },
-      params: {companyId: companyId },
+      params: { companyId },
     });
 
-    if (response.status === 200 && response.data.status === "success") {
-      return "success";
+    if (response.status === 200) {
+      return response.data; // This should return an array of campaigns
     } else {
-      return "error";
+      return [];
     }
   } catch (error) {
     console.error('Error getting campaigns:', error);
-    return "error";
+    return [];
   }
-
 };
 
 export const editCampaign = async (user, campaignId, formFields) => {

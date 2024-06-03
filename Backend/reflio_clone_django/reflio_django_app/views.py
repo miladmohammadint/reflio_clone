@@ -27,6 +27,9 @@ from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.utils.http import urlsafe_base64_decode
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
+from .serializers import CampaignSerializer
+from rest_framework import status
+
 
 logger = logging.getLogger(__name__) 
 
@@ -316,24 +319,17 @@ def create_campaign(request):
 @csrf_exempt
 @api_view(['GET'])
 def get_campaigns(request):
-    if request.method == 'GET':
-        # Assuming you have a Campaign model in your Django app
-        company_id = request.GET.get('companyId')
-
-        try:
-            # Replace Campaign with your actual model name
-            campaign = Campaign.objects.get(company_id=company_id)
-            # Serialize the campaign data as needed
-            campaign_data = {
-                'id': campaign.campaign_id,
-                'name': campaign.campaign_name,
-                # Add other campaign attributes as needed
-            }
-            return JsonResponse(campaign_data)
-        except Campaign.DoesNotExist:
-            return JsonResponse({'error': 'Campaign not found'}, status=404)
-    else:
-        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    company_id = request.query_params.get('companyId')
+    if company_id is None:
+        return Response({"error": "companyId parameter is required"}, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        # Fetch campaigns based on company ID
+        campaigns = Campaign.objects.filter(company_id=company_id)
+        campaign_data = CampaignSerializer(campaigns, many=True).data
+        return Response(campaign_data, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @csrf_exempt
 @api_view(['POST'])
