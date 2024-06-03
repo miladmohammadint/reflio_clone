@@ -332,27 +332,16 @@ def get_campaigns(request):
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @csrf_exempt
-@api_view(['POST'])
-def campaign_details(request):
-    if request.method == 'POST':
-        # Assuming you have a Campaign model in your Django app
-        referral_code = request.POST.get('referralCode')
-        company_id = request.POST.get('companyId')
-
-        try:
-            # Replace Campaign with your actual model name
-            campaign = Campaign.objects.get(referral_code=referral_code, company_id=company_id)
-            # Serialize the campaign data as needed
-            campaign_data = {
-                'id': campaign.id,
-                'name': campaign.name,
-                # Add other campaign attributes as needed
-            }
-            return JsonResponse(campaign_data)
-        except Campaign.DoesNotExist:
-            return JsonResponse({'error': 'Campaign not found'}, status=404)
-    else:
-        return JsonResponse({'error': 'Method not allowed'}, status=405)
+@api_view(['GET'])
+def campaign_details(request, company_id, campaign_id):
+    try:
+        campaign = Campaign.objects.get(company_id=company_id, campaign_id=campaign_id)
+        campaign_data = CampaignSerializer(campaign).data
+        return Response(campaign_data, status=status.HTTP_200_OK)
+    except Campaign.DoesNotExist:
+        return Response({"error": "Campaign not found"}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @csrf_exempt
 @api_view(['GET'])
