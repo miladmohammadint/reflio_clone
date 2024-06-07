@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router';
 import { useCampaign } from '@/utils/CampaignContext';
-import CampaignForm from '@/forms/CampaignForm';
+import { CampaignForm } from '@/forms/CampaignForm';
 import { SEOMeta } from '@/templates/SEOMeta'; 
 import Button from '@/components/Button'; 
 import {
@@ -11,6 +11,8 @@ import LoadingTile from '@/components/LoadingTile';
 export default function EditCampaignPage() {
   const router = useRouter();
   const { activeCampaign } = useCampaign();
+
+  console.log('Active Campaign:', activeCampaign);
 
   return (
     <>

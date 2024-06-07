@@ -351,7 +351,7 @@ def get_sales(request):
     """
     if request.method == 'GET':
         company_id = request.GET.get('company_id')
-        date = request.GET.get('date')
+        date = datetime.now()
         page = request.GET.get('page')
 
         # Construct query based on filters
@@ -575,13 +575,16 @@ def edit_campaign(request):
             campaign_id = data.get('campaign_id')
             form_fields = data.get('form_fields')
 
-            # Perform your logic here to update the campaign with the provided form fields
+            if not campaign_id or not form_fields:
+                return JsonResponse({'status': 'error', 'message': 'Invalid data'})
 
+            # Perform your logic here to update the campaign with the provided form fields
             # Example logic:
-            # Campaign.objects.filter(id=campaign_id).update(**form_fields)
+            Campaign.objects.filter(id=campaign_id).update(**form_fields)
 
             return JsonResponse({'status': 'success'})
         except Exception as e:
+            # Log the exception here
             return JsonResponse({'status': 'error', 'message': str(e)})
         
 @csrf_exempt

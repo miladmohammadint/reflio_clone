@@ -49,6 +49,7 @@ export const CampaignForm = ({ edit, setupMode, companyId }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log('Form submitted'); // Debugging statement
 
     if (loading) {
       return false;
@@ -62,6 +63,7 @@ export const CampaignForm = ({ edit, setupMode, companyId }) => {
     }
 
     data.default_campaign = data.default_campaign === "on";
+    console.log('Form data:', data); // Debugging statement
 
     setLoading(true);
 
@@ -104,7 +106,7 @@ export const CampaignForm = ({ edit, setupMode, companyId }) => {
           className="rounded-xl bg-white max-w-2xl overflow-hidden shadow-lg border-4 border-gray-300"
           action="#"
           method="POST"
-          onSubmit={handleSubmit}
+          onSubmit={handleSubmit} // Ensure this is attached
         >
           <div className="px-6 pt-8 pb-12">
             <div className="space-y-8 divide-y divide-gray-200">
@@ -229,23 +231,22 @@ export const CampaignForm = ({ edit, setupMode, companyId }) => {
                         type="checkbox"
                         name="default_campaign"
                         id="default_campaign"
-                        className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
-                        defaultChecked={edit?.default_campaign ?? false}
+                        defaultChecked={edit ? edit.default_campaign : false}
                       />
                     </div>
-                  </div>
-
-                  <div className="sm:col-span-12">
-                    <button
-                      type="submit"
-                      className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-xl text-white bg-indigo-600 hover:bg-indigo-700"
-                    >
-                      {edit ? "Edit Campaign" : "Create Campaign"}
-                    </button>
                   </div>
                 </div>
               </div>
             </div>
+          </div>
+          <div className="px-6 py-3 bg-gray-50 text-right">
+            <Button
+              type="submit" // Ensure this is of type submit
+              loading={loading}
+              className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              {loading ? <LoadingDots /> : 'Save Campaign'}
+            </Button>
           </div>
         </form>
       ) : (

@@ -1,7 +1,8 @@
-import { useState, useEffect, createContext, useContext } from 'react';
+import { useState, useEffect, createContext, useContext, useCallback } from 'react';
 import { getCampaigns, useUser } from './useUser';
 import { useCompany } from './CompanyContext';
 import { useRouter } from 'next/router';
+import toast from 'react-hot-toast';
 
 export const CampaignContext = createContext();
 
@@ -10,26 +11,34 @@ export const CampaignContextProvider = (props) => {
   const { activeCompany } = useCompany();
   const [userCampaignDetails, setUserCampaignDetails] = useState([]);
   const [activeCampaign, setActiveCampaign] = useState(null);
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  const fetchCampaignDetails = async (companyId) => {
+  const fetchCampaignDetails = useCallback(async (companyId) => {
+    setLoading(true);
     try {
       const results = await getCampaigns(companyId);
       const campaigns = Array.isArray(results) ? results : [results];
+      console.log('Fetched campaigns:', campaigns); // Debugging statement
       setUserCampaignDetails(campaigns);
     } catch (error) {
+      toast.error('Error fetching campaigns');
       console.error('Error fetching campaigns:', error);
+    } finally {
+      setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     if (activeCompany?.company_id) {
       fetchCampaignDetails(activeCompany.company_id);
     }
-  }, [userFinderLoaded, activeCompany]);
+  }, [userFinderLoaded, activeCompany, fetchCampaignDetails]);
 
   useEffect(() => {
-    const newActiveCampaign = userCampaignDetails.find(campaign => campaign.id === router.query.campaignId);
+    console.log('Router query campaignId:', router.query.campaignId); // Debugging statement
+    const newActiveCampaign = userCampaignDetails.find(campaign => campaign.campaign_id === router.query.campaignId);
+    console.log('New active campaign:', newActiveCampaign); // Debugging statement
     setActiveCampaign(newActiveCampaign || null);
   }, [router.query.campaignId, userCampaignDetails]);
 
@@ -37,6 +46,7 @@ export const CampaignContextProvider = (props) => {
     activeCampaign,
     userCampaignDetails,
     fetchCampaignDetails,
+    loading,
   };
 
   return <CampaignContext.Provider value={value} {...props} />;

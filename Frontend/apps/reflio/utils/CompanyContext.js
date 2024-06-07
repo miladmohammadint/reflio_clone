@@ -54,6 +54,9 @@ export const CompanyContextProvider = (props) => {
   }, [userCompanyDetails, router.query.companyId]);
 
   useEffect(() => {
+    console.log('team', team);
+    console.log('pathname', router.pathname);
+    console.log('creating team', creatingTeam);
     if (userCompanyDetails.length === 0 && !router.asPath.includes('add-company') && router.pathname !== '/dashboard/create-team') {
       if (team === 'none' && router.pathname !== '/dashboard/create-team' && creatingTeam === false) {
         setCreatingTeam(true);

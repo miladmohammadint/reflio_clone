@@ -80,7 +80,7 @@ export default function SingleCampaignPage() {
                     </Button>
                     <Button
                       className="ml-3"
-                      href={`/dashboard/${router.query.companyId}/campaigns/${router.query.campaignId}/customize`}
+                      href={`${backendBaseUrl}/dashboard/${router.query.companyId}/campaigns/${router.query.campaignId}/customize`}
                       small
                       secondary
                     >
