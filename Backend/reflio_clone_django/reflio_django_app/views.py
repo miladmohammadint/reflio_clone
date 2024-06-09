@@ -565,11 +565,14 @@ def new_team(request):
 
     else:
         return JsonResponse({'error': 'Method not allowed'}, status=405)
-    
-@csrf_exempt
+
+@never_cache
 @api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def edit_campaign(request):
     if request.method == 'POST':
+        logger.debug(f"Request body: {request.body}")
+        logger.debug(f"Request headers: {request.headers}")
         try:
             data = json.loads(request.body)
             campaign_id = data.get('campaign_id')
@@ -579,12 +582,11 @@ def edit_campaign(request):
                 return JsonResponse({'status': 'error', 'message': 'Invalid data'})
 
             # Perform your logic here to update the campaign with the provided form fields
-            # Example logic:
             Campaign.objects.filter(id=campaign_id).update(**form_fields)
 
             return JsonResponse({'status': 'success'})
         except Exception as e:
-            # Log the exception here
+            logger.error(f"Exception: {str(e)}")
             return JsonResponse({'status': 'error', 'message': str(e)})
         
 @csrf_exempt
@@ -806,3 +808,40 @@ def reset_password(request):
             return JsonResponse({'status': 'error', 'message': str(e)})
     elif request.method == 'GET':
         return JsonResponse({'error': 'Method not allowed'}, status=405)
+    
+@csrf_exempt
+def create_referral(request):
+    if request.method == "POST":
+        try:
+            details = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Could not parse body"}, status=400)
+
+        try:
+            campaign = Campaign.objects.get(campaign_id=details.get("campaign_id"))
+            expiry_date = datetime.datetime.utcnow() + datetime.timedelta(days=campaign.cookie_window or 60)
+
+            referral = Referral.objects.create(
+                referral_id=str(uuid.uuid4()),
+                campaign=campaign,
+                affiliate_id=details.get("affiliate_id"),
+                referral_reference_email=details.get("referral_reference_email"),
+                referral_expiry=expiry_date,
+                commission_period=campaign.commission_period
+            )
+
+            return JsonResponse({
+                "campaign_id": campaign.campaign_id,
+                "cookie_date": expiry_date.isoformat(),
+                "campaign_name": campaign.campaign_name,
+                "affiliate_id": details.get("affiliate_id"),
+                "referral_id": referral.referral_id,
+                "commission_period": referral.commission_period
+            }, status=201)
+
+        except Campaign.DoesNotExist:
+            return JsonResponse({"error": "Campaign not found"}, status=404)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+
+    return JsonResponse({"error": "Invalid request method"}, status=405)
