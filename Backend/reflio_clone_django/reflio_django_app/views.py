@@ -845,3 +845,46 @@ def create_referral(request):
             return JsonResponse({"error": str(e)}, status=500)
 
     return JsonResponse({"error": "Invalid request method"}, status=405)
+
+@csrf_exempt
+def invite_affiliate(request):
+    if request.method == 'POST':
+        try:
+            body = json.loads(request.body)
+            company_id = body.get('companyId')
+            campaign_id = body.get('campaignId')
+            email_invites = body.get('emailInvites')
+            name = body.get('name')
+            vercel_username = body.get('vercel_username')
+            logo_url = body.get('logoUrl')
+            email_subject = body.get('emailSubject')
+            email_content = body.get('emailContent')
+
+            if not (company_id and campaign_id and email_invites and name and vercel_username):
+                return JsonResponse({'error': 'Missing required fields'}, status=400)
+
+            company = Company.objects.get(id=company_id)
+            campaign = Campaign.objects.get(id=campaign_id)
+
+            affiliate = Affiliate.objects.create(
+                company=company,
+                campaign=campaign,
+                name=name,
+                vercel_username=vercel_username,
+                logo_url=logo_url,
+                email_subject=email_subject,
+                email_content=email_content,
+                email_invites=email_invites
+            )
+
+            return JsonResponse({'status': 'success', 'affiliate_id': affiliate.id}, status=200)
+        except Company.DoesNotExist:
+            return JsonResponse({'error': 'Company not found'}, status=404)
+        except Campaign.DoesNotExist:
+            return JsonResponse({'error': 'Campaign not found'}, status=404)
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    else:
+        return JsonResponse({'error': 'Invalid HTTP method'}, status=405)

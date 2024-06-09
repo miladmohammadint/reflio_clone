@@ -56,4 +56,5 @@ urlpatterns = [
     path('api/upload_logo_image/', views.upload_logo_image, name='upload_logo_image'),
     path('api/reset_password/', views.reset_password, name='reset_password'),
     path('api/create_referral/', views.create_referral, name='create_referral'),
+    path('api/affiliates/invite/', views.invite_affiliate, name='invite_affiliate'),
 ]
